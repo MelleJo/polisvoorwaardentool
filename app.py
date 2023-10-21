@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import os
 import streamlit as st
 from PyPDF2 import PdfReader
@@ -10,7 +10,7 @@ from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 
 def main():
-    load_dotenv()
+    #load_dotenv()
     st.set_page_config(page_title="VA-Polisvoorwaardentool")
     st.header("VA-Polisvoorwaardentool")
 

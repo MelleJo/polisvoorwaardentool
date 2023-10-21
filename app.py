@@ -1,4 +1,3 @@
-#from dotenv import load_dotenv
 import os
 import streamlit as st
 from PyPDF2 import PdfReader
@@ -10,10 +9,12 @@ from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 
 def main():
+    # Get the API key from Streamlit's secrets
     api_key = st.secrets["OPENAI_API_KEY"]
-    print(api_key)  # for debugging purpose only
+    
+    # Set it as an environment variable (if required by any library)
+    os.environ["OPENAI_API_KEY"] = api_key
 
-    #load_dotenv()
     st.set_page_config(page_title="VA-Polisvoorwaardentool")
     st.header("VA-Polisvoorwaardentool")
 
@@ -53,6 +54,7 @@ def main():
             chain = load_qa_chain(llm, chain_type="stuff")
             with get_openai_callback() as cb:
                 response = chain.run(input_documents=docs, question=user_question)
+                # You can print other debugging info if needed, but avoid printing the API key.
                 print(cb)
             st.write(response)
 

@@ -10,6 +10,9 @@ from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 
 def main():
+    api_key = st.secrets["OPENAI_API_KEY"]
+    print(api_key)  # for debugging purpose only
+
     #load_dotenv()
     st.set_page_config(page_title="VA-Polisvoorwaardentool")
     st.header("VA-Polisvoorwaardentool")

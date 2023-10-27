@@ -30,7 +30,7 @@ def categorize_pdfs(pdf_list):
             category = "Bestelautoverzekering"
         elif prefix == "Brand":
             category = "Brandverzekeringen"
-        elif prefix == "Car":
+        elif prefix == "Cara":
             category = "Caravanverzekering"
         elif prefix == "EigVerv":
             category = "Eigen vervoer"
@@ -80,13 +80,17 @@ def main():
     st.set_page_config(page_title="VA-Polisvoorwaardentool")
     st.header("VA-Polisvoorwaardentool")
 
-    # Get list of preloaded PDFs
+    # Get list of preloaded PDFs recursively
     pdf_dir = "preloaded_pdfs/"
-    all_pdfs = [f for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
+    all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
     category_map = categorize_pdfs(all_pdfs)
 
-    # Get list of categories and let the user choose
     categories = list(category_map.keys())
+    if not categories:
+        st.warning("No PDFs found in the expected categories.")
+        return
+
+    # Get list of categories and let the user choose
     selected_category = st.selectbox("Choose a category:", categories)
 
     # Get list of PDFs for the selected category
@@ -94,8 +98,7 @@ def main():
     selected_pdf = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", available_pdfs)
 
     # Read the selected PDF
-    pdf_path = os.path.join(pdf_dir, selected_pdf)
-    with open(pdf_path, "rb") as f:
+    with open(selected_pdf, "rb") as f:
         pdf_reader = PdfReader(f)
         text = ""
 

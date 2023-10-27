@@ -8,11 +8,14 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 
+# Global variable to cache embeddings to reduce repeated API calls
+knowledge_bases = {}
+
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
-        prefix = pdf.split('/')[-1].split('_')[0]  # Extract prefix from the filename, not the path
-        
+        prefix = os.path.basename(pdf).split('-')[0]  # Extract prefix from the filename, not the path
+
         # Mapping prefixes to categories
         if prefix == "Auto":
             category = "Autoverzekering"
@@ -58,18 +61,18 @@ def categorize_pdfs(pdf_list):
             category = "Woonhuisverzekering"
         else:
             category = "others"
-        
+
         # Add the pdf to its category in the map
         if category not in category_map:
             category_map[category] = []
         category_map[category].append(pdf)
-    
+
     return category_map
 
 def main():
     # Get the API key from Streamlit's secrets
     api_key = st.secrets["OPENAI_API_KEY"]
-    
+
     # Set it as an environment variable (if required by any library)
     os.environ["OPENAI_API_KEY"] = api_key
 
@@ -97,39 +100,43 @@ def main():
     # Map the selected name back to its path
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
-    # Read the selected PDF
-    with open(selected_pdf_path, "rb") as f:  # Use the full path here
-        pdf_reader = PdfReader(f)
-        text = ""
+    # Check if embeddings for this PDF are already cached
+    if selected_pdf_path not in knowledge_bases:
+        # Read the selected PDF
+        with open(selected_pdf_path, "rb") as f:
+            pdf_reader = PdfReader(f)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
 
-        for page in pdf_reader.pages:
-            text += page.extract_text()
+            # Split into chunks
+            text_spliter = CharacterTextSplitter(
+                separator="\n",
+                chunk_size=1000,
+                chunk_overlap=200,
+                length_function=len
+            )
+            chunks = text_spliter.split_text(text)
 
-        # Split into chunks
-        text_spliter = CharacterTextSplitter(
-            separator="\n",
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len
-        )
-        chunks = text_spliter.split_text(text)
+            # Create embeddings
+            embeddings = OpenAIEmbeddings()
+            knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
-        # Create embeddings
-        embeddings = OpenAIEmbeddings()
-        knowledge_base = FAISS.from_texts(chunks, embeddings)
+    # Use the cached/embedded knowledge base for the selected PDF
+    knowledge_base = knowledge_bases[selected_pdf_path]
 
-        # Show user input
-        user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
-        if user_question: 
-            docs = knowledge_base.similarity_search(user_question)
+    # Show user input
+    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+    if user_question:
+        docs = knowledge_base.similarity_search(user_question)
 
-            llm = OpenAI()
-            chain = load_qa_chain(llm, chain_type="stuff")
-            with get_openai_callback() as cb:
-                response = chain.run(input_documents=docs, question=user_question)
-                # You can print other debugging info if needed, but avoid printing the API key.
-                print(cb)
-            st.write(response)
+        llm = OpenAI()
+        chain = load_qa_chain(llm, chain_type="stuff")
+        with get_openai_callback() as cb:
+            response = chain.run(input_documents=docs, question=user_question)
+            # You can print other debugging info if needed, but avoid printing the API key.
+            print(cb)
+        st.write(response)
 
 if __name__ == '__main__':
     main()

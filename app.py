@@ -11,11 +11,7 @@ from langchain.callbacks import get_openai_callback
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
-        prefix = pdf.split('-')[0]
-        
-
-    for pdf in pdf_list:
-        prefix = pdf.split('-')[0]
+        prefix = pdf.split('/')[-1].split('-')[0]  # Extract prefix from the filename, not the path
         
         # Mapping prefixes to categories
         if prefix == "Auto":
@@ -95,10 +91,14 @@ def main():
 
     # Get list of PDFs for the selected category
     available_pdfs = category_map[selected_category]
-    selected_pdf = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", available_pdfs)
+    pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]  # Extract the names for display
+    selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
+
+    # Map the selected name back to its path
+    selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
     # Read the selected PDF
-    with open(selected_pdf, "rb") as f:
+    with open(selected_pdf_path, "rb") as f:  # Use the full path here
         pdf_reader = PdfReader(f)
         text = ""
 

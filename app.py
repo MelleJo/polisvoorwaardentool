@@ -14,7 +14,7 @@ knowledge_bases = {}
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
-        prefix = os.path.basename(pdf).split('-')[0]  # Extract prefix from the filename, not the path
+        prefix = os.path.basename(pdf).split('_')[0]  # Extract prefix from the filename, not the path
 
         # Mapping prefixes to categories
         if prefix == "Auto":

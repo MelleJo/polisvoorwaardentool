@@ -8,6 +8,68 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 
+def categorize_pdfs(pdf_list):
+    category_map = {}
+    for pdf in pdf_list:
+        prefix = pdf.split('-')[0]
+        
+
+    for pdf in pdf_list:
+        prefix = pdf.split('-')[0]
+        
+        # Mapping prefixes to categories
+        if prefix == "Auto":
+            category = "Autoverzekering"
+        elif prefix == "AVB":
+            category = "Bedrijfsaansprakelijkheidsverzekering"
+        elif prefix == "BestAVB":
+            category = "AVB Bestuurders"
+        elif prefix == "BS":
+            category = "Bedrijfsschadeverzekering"
+        elif prefix == "BestAuto":
+            category = "Bestelautoverzekering"
+        elif prefix == "Brand":
+            category = "Brandverzekeringen"
+        elif prefix == "Car":
+            category = "Caravanverzekering"
+        elif prefix == "EigVerv":
+            category = "Eigen vervoer"
+        elif prefix == "Fiets":
+            category = "Fietsverzekering"
+        elif prefix == "Geb":
+            category = "Gebouwen"
+        elif prefix == "GW":
+            category = "Goed Werkgeverschap"
+        elif prefix == "IB":
+            category = "Inboedelverzekering"
+        elif prefix == "Inv":
+            category = "Inventaris"
+        elif prefix == "Mot":
+            category = "Motorverzekering"
+        elif prefix == "RB":
+            category = "Rechtsbijstandverzekering"
+        elif prefix == "Reis":
+            category = "Reisverzekering"
+        elif prefix == "Scoot":
+            category = "Scootmobielverzekering"
+        elif prefix == "WEGAS":
+            category = "WEGAS"
+        elif prefix == "WerkMat":
+            category = "Werk- en landbouwmaterieelverzekering"
+        elif prefix == "WEGAM":
+            category = "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)"
+        elif prefix == "Woon":
+            category = "Woonhuisverzekering"
+        else:
+            category = "others"
+        
+        # Add the pdf to its category in the map
+        if category not in category_map:
+            category_map[category] = []
+        category_map[category].append(pdf)
+    
+    return category_map
+
 def main():
     # Get the API key from Streamlit's secrets
     api_key = st.secrets["OPENAI_API_KEY"]
@@ -20,9 +82,17 @@ def main():
 
     # Get list of preloaded PDFs
     pdf_dir = "preloaded_pdfs/"
-    available_pdfs = [f for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
+    all_pdfs = [f for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
+    category_map = categorize_pdfs(all_pdfs)
+
+    # Get list of categories and let the user choose
+    categories = list(category_map.keys())
+    selected_category = st.selectbox("Choose a category:", categories)
+
+    # Get list of PDFs for the selected category
+    available_pdfs = category_map[selected_category]
     selected_pdf = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", available_pdfs)
-    
+
     # Read the selected PDF
     pdf_path = os.path.join(pdf_dir, selected_pdf)
     with open(pdf_path, "rb") as f:

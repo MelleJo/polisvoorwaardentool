@@ -11,7 +11,7 @@ from langchain.callbacks import get_openai_callback
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
-        prefix = pdf.split('/')[-1].split('-')[0]  # Extract prefix from the filename, not the path
+        prefix = pdf.split('/')[-1].split('_')[0]  # Extract prefix from the filename, not the path
         
         # Mapping prefixes to categories
         if prefix == "Auto":

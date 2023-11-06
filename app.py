@@ -9,13 +9,21 @@ from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
 
+# Set page config
+st.set_page_config(page_title="VA-Polisvoorwaardentool")
+
+# Check password
+hashed_password = st.secrets["hashed_password"]
+password_input = st.text_input("Enter the password:", type="password")
+
+if sha256(password_input.encode()).hexdigest() == hashed_password:
+    st.success("Password correct!")
+else:
+    st.error("Password incorrect. Please try again.")
+    st.stop()
+
 # Global variable to cache embeddings to reduce repeated API calls
 knowledge_bases = {}
-
-def check_password(hashed_password, input_password):
-    if sha256(input_password.encode()).hexdigest() == hashed_password:
-        return True
-    return False
 
 def categorize_pdfs(pdf_list):
     category_map = {}
@@ -76,28 +84,17 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 def main():
+    st.header("VA-Polisvoorwaardentool")
+
     # Get the API key from Streamlit's secrets
     api_key = st.secrets["OPENAI_API_KEY"]
 
     # Set it as an environment variable (if required by any library)
     os.environ["OPENAI_API_KEY"] = api_key
 
-    st.set_page_config(page_title="VA-Polisvoorwaardentool")
-    st.header("VA-Polisvoorwaardentool")
-    
-    # ww beveiliging
-    hashed_password = st.secrets["hashed_password"]
-    password_input = st.text_input("Enter the password", type="password")
-
-    if check_password(hashed_password, password_input):
-        st.success("Password correct!")
-
-    else:
-        st.error("Password incorrect. Please try again.")
-    
     # Get list of preloaded PDFs recursively
     pdf_dir = "preloaded_pdfs/"
-    all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
+    all_pdfs = [os.path.join(dp, dn, filenames) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
     category_map = categorize_pdfs(all_pdfs)
 
     categories = list(category_map.keys())
@@ -126,13 +123,13 @@ def main():
                 text += page.extract_text()
 
             # Split into chunks
-            text_spliter = CharacterTextSplitter(
+            text_splitter = CharacterTextSplitter(
                 separator="\n",
                 chunk_size=1000,
                 chunk_overlap=200,
                 length_function=len
             )
-            chunks = text_spliter.split_text(text)
+            chunks = text_splitter.split_text(text)
 
             # Create embeddings
             embeddings = OpenAIEmbeddings()

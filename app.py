@@ -94,7 +94,8 @@ def main():
 
     # Get list of preloaded PDFs recursively
     pdf_dir = "preloaded_pdfs/"
-    all_pdfs = [os.path.join(dp, dn, filenames) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
+    all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
+
     category_map = categorize_pdfs(all_pdfs)
 
     categories = list(category_map.keys())

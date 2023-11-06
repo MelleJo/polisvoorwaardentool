@@ -76,6 +76,15 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 def main():
+    # Get the API key from Streamlit's secrets
+    api_key = st.secrets["OPENAI_API_KEY"]
+
+    # Set it as an environment variable (if required by any library)
+    os.environ["OPENAI_API_KEY"] = api_key
+
+    st.set_page_config(page_title="VA-Polisvoorwaardentool")
+    st.header("VA-Polisvoorwaardentool")
+    
     # ww beveiliging
     hashed_password = st.secrets["hashed_password"]
     password_input = st.text_input("Enter the password", type="password")
@@ -86,15 +95,6 @@ def main():
     else:
         st.error("Password incorrect. Please try again.")
     
-    # Get the API key from Streamlit's secrets
-    api_key = st.secrets["OPENAI_API_KEY"]
-
-    # Set it as an environment variable (if required by any library)
-    os.environ["OPENAI_API_KEY"] = api_key
-
-    st.set_page_config(page_title="VA-Polisvoorwaardentool")
-    st.header("VA-Polisvoorwaardentool")
-
     # Get list of preloaded PDFs recursively
     pdf_dir = "preloaded_pdfs/"
     all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]

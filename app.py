@@ -86,11 +86,11 @@ def main():
 
     categories = list(category_map.keys())
     if not categories:
-        st.warning("No PDFs found in the expected categories.")
+        st.warning("Geen polisvoorwaarden gevonden in deze categorie.")
         return
 
     # Get list of categories and let the user choose
-    selected_category = st.selectbox("Choose a category:", categories)
+    selected_category = st.selectbox("Kies een categorie:", categories)
 
     # Get list of PDFs for the selected category
     available_pdfs = category_map[selected_category]

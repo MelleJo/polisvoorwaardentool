@@ -7,11 +7,15 @@ from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
-import smtplib
-from email.message import EmailMessage
+from hashlib import sha256
 
 # Global variable to cache embeddings to reduce repeated API calls
 knowledge_bases = {}
+
+def check_password(hashed_password, input_password):
+    if sha256(input_password.encode()).hexdigest() == hashed_password:
+        return True
+    return False
 
 def categorize_pdfs(pdf_list):
     category_map = {}
@@ -72,6 +76,16 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 def main():
+    # ww beveiliging
+    hashed_password = st.secrets["hashed_password"]
+    password_input = st.text_input("Enter the password", type="password")
+
+    if check_password(hashed_password, password_input):
+        st.success("Password correct!")
+
+    else:
+        st.error("Password incorrect. Please try again.")
+    
     # Get the API key from Streamlit's secrets
     api_key = st.secrets["OPENAI_API_KEY"]
 

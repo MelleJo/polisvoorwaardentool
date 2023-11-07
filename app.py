@@ -142,16 +142,26 @@ def main():
     # Show user input
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        docs = knowledge_base.similarity_search(user_question)
-
+        # Search the knowledge base for relevant documents
+        docs, doc_scores = knowledge_base.similarity_search(user_question, return_scores=True)
+    
+        # Find the chunk with the highest score
+        best_doc_index = doc_scores.argmax()
+        best_chunk = chunks[best_doc_index]
+    
+        # Use the LLm to answer the question based on the best chunk
         llm = OpenAI()
-        chain = load_qa_chain(llm, chain_type="stuff")
+        chain = load_qa_chain(llm, chain_type="stuff")  # Make sure this function and chain_type are correctly defined
         with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=user_question)
-            context = print(chunks)
-            print(cb)
-        st.write(response)
-        st.write(context)
+            response = chain.run(input_documents=[best_chunk], question=user_question)
+            # Here, you would want to capture and use any context or data from the callback
+            # but ensure that get_openai_callback is properly defined and used
+    
+    # Write the response and context to the Streamlit app
+    st.write(response)
+    st.write("Context from which the answer was derived:")
+    st.write(best_chunk)
+
 
 
 if __name__ == '__main__':

@@ -153,9 +153,9 @@ def main():
         st.write(response)
         
         if docs:
-        most_similar_chunk = max(docs, key=lambda x: x['score'])
-        st.subheader("Context van het antwoord:")
-        st.text_area("Dit is de tekst uit de polisvoorwaarden die gebruikt is om het antwoord te geven:", most_similar_chunk['text'], height=150)
+            most_similar_chunk = max(docs, key=lambda x: x['score'])
+            st.subheader("Context van het antwoord:")
+            st.text_area("Dit is de tekst uit de polisvoorwaarden die gebruikt is om het antwoord te geven:", most_similar_chunk['text'], height=150)
 
 if __name__ == '__main__':
     main()

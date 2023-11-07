@@ -148,9 +148,11 @@ def main():
         chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=user_question)
-            # You can print other debugging info if needed, but avoid printing the API key.
+            context = print(chunks)
             print(cb)
         st.write(response)
+        st.write(context)
+
 
 if __name__ == '__main__':
     main()

@@ -9,6 +9,7 @@ from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
 import base64
+from io import BytesIO
 
 # Set page config
 st.set_page_config(page_title="VA-Polisvoorwaardentool")

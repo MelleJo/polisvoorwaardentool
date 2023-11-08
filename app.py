@@ -76,10 +76,11 @@ def categorize_pdfs(pdf_list):
             category = "Woonhuisverzekering"
         else:
             category = "others"
-        category = "your_category_based_on_prefix"
+            
         if category not in category_map:
             category_map[category] = []
         category_map[category].append(pdf)
+    
     return category_map
 
 def display_pdf(file_path):

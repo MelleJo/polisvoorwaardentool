@@ -22,7 +22,8 @@ if sha256(password_input.encode()).hexdigest() == hashed_password:
 else:
     st.error("Password incorrect. Please try again.")
     st.stop()
-    
+
+
 # Function to display PDF using base64 encoding
 # def display_pdf(file_path):
     #with open(file_path, "rb") as f:
@@ -94,6 +95,9 @@ def categorize_pdfs(pdf_list):
 def main():
     st.header("VA-Polisvoorwaardentool")
 
+    #upload pdf als die er nog niet is
+    uploaded_file = st.file_uploader("Upload nieuwe polisvoorwaarden", type=['pdf'])
+
     # Get the API key from Streamlit's secrets
     api_key = st.secrets["OPENAI_API_KEY"]
 
@@ -110,14 +114,31 @@ def main():
     if not categories:
         st.warning("Geen polisvoorwaarden gevonden in deze categorie.")
         return
-
+    
     # Get list of categories and let the user choose
     selected_category = st.selectbox("Kies een categorie:", categories)
 
-    # Get list of PDFs for the selected category
-    available_pdfs = category_map[selected_category]
-    pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]  # Extract the names for display
-    selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
+     if uploaded_file is not None:
+        # Process the uploaded PDF directly without saving
+        bytes_data = uploaded_file.read()
+        # Assume the PdfReader and other necessary classes are already imported
+        pdf_reader = PdfReader(BytesIO(bytes_data))
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() or ""  # Extract text, handle None if extract_text() fails
+        # You can now use this text with your LLM question-answering system
+
+        user_question = st.text_input("Stel een vraag over de geüploade polisvoorwaarden")
+        if user_question:
+            # Process the question using the LLM on the uploaded PDF's text
+            # Assuming you have a function to handle the LLM processing
+            response = process_question_with_llm(text, user_question)
+            st.write(response)
+    else:
+        # Get list of PDFs for the selected category
+        available_pdfs = category_map[selected_category]
+        pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]  # Extract the names for display
+        selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
 
     # Map the selected name back to its path
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]

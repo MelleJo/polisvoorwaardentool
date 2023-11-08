@@ -118,7 +118,7 @@ def main():
     # Get list of categories and let the user choose
     selected_category = st.selectbox("Kies een categorie:", categories)
 
-     if uploaded_file is not None:
+    if uploaded_file is not None:
         # Process the uploaded PDF directly without saving
         bytes_data = uploaded_file.read()
         # Assume the PdfReader and other necessary classes are already imported

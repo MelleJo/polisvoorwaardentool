@@ -24,11 +24,11 @@ else:
     st.stop()
     
 # Function to display PDF using base64 encoding
-def display_pdf(file_path):
-    with open(file_path, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
-    st.markdown(pdf_display, unsafe_allow_html=True)
+# def display_pdf(file_path):
+    #with open(file_path, "rb") as f:
+        #base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    #pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+    #st.markdown(pdf_display, unsafe_allow_html=True)
 
 # Global variable to cache embeddings to reduce repeated API calls
 knowledge_bases = {}
@@ -126,7 +126,7 @@ def main():
     if selected_pdf_path:
         with open(selected_pdf_path, "rb") as file:
             st.download_button(
-                label="Download PDF",
+                label="Download polisvoorwaarden",
                 data=file,
                 file_name=selected_pdf_name,
                 mime="application/pdf"

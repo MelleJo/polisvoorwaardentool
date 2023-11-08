@@ -18,9 +18,7 @@ st.set_page_config(page_title="VA-Polisvoorwaardentool")
 hashed_password = st.secrets["hashed_password"]
 password_input = st.text_input("Enter the password:", type="password")
 
-if sha256(password_input.encode()).hexdigest() == hashed_password:
-    st.success("Password correct!")
-else:
+if sha256(password_input.encode()).hexdigest() != hashed_password:
     st.error("Password incorrect. Please try again.")
     st.stop()
 

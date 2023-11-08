@@ -122,9 +122,15 @@ def main():
     # Map the selected name back to its path
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
-      # Display the selected PDF
+      # Provide a button for the user to download the PDF
     if selected_pdf_path:
-        display_pdf(selected_pdf_path)
+        with open(selected_pdf_path, "rb") as file:
+            st.download_button(
+                label="Download PDF",
+                data=file,
+                file_name=selected_pdf_name,
+                mime="application/pdf"
+            )
     # Check if embeddings for this PDF are already cached
     if selected_pdf_path not in knowledge_bases:
         # Read the selected PDF

@@ -21,6 +21,13 @@ if sha256(password_input.encode()).hexdigest() == hashed_password:
 else:
     st.error("Password incorrect. Please try again.")
     st.stop()
+    
+# Function to display PDF using base64 encoding
+def display_pdf(file_path):
+    with open(file_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 # Global variable to cache embeddings to reduce repeated API calls
 knowledge_bases = {}
@@ -114,18 +121,9 @@ def main():
     # Map the selected name back to its path
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
-    # Display the selected PDF using st.pdf
+      # Display the selected PDF
     if selected_pdf_path:
-        with open(selected_pdf_path, "rb") as file:
-            st.download_button(
-                label="Download PDF",
-                data=file,
-                file_name=selected_pdf_name,
-                mime="application/octet-stream"
-            )
-            file.seek(0)  # Go back to the beginning of the file after downloading
-            st.pdf(file.read(), format="PDF")  # Display the PDF in the app
-
+        display_pdf(selected_pdf_path)
     # Check if embeddings for this PDF are already cached
     if selected_pdf_path not in knowledge_bases:
         # Read the selected PDF
@@ -134,7 +132,6 @@ def main():
             text = ""
             for page in pdf_reader.pages:
                 text += page.extract_text()
-
             # Split into chunks
             text_splitter = CharacterTextSplitter(
                 separator="\n",
@@ -143,19 +140,15 @@ def main():
                 length_function=len
             )
             chunks = text_splitter.split_text(text)
-
             # Create embeddings
             embeddings = OpenAIEmbeddings()
             knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
-
     # Use the cached/embedded knowledge base for the selected PDF
     knowledge_base = knowledge_bases[selected_pdf_path]
-
     # Show user input
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
-
         llm = OpenAI()
         chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:

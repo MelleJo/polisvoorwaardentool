@@ -17,7 +17,7 @@ hashed_password = st.secrets["hashed_password"]
 password_input = st.text_input("Enter the password:", type="password")
 
 if sha256(password_input.encode()).hexdigest() != hashed_password:
-    st.error("Password incorrect. Please try again.")
+    st.error("Voer het juiste wachtwoord in.")
     st.stop()
 
 # Global variable to cache embeddings to reduce repeated API calls

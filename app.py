@@ -80,11 +80,13 @@ def categorize_pdfs(pdf_list):
 
 def create_custom_prompt(user_question):
     custom_prompt = (
-        f"Beantwoord deze vraag nauwkeurig en gedetailleerd op basis van de inhoud van het geselecteerde PDF-document:\n\n"
+        f"Beantwoord deze vraag nauwkeurig en gedetailleerd op basis van de inhoud van het geselecteerde PDF-document. "
+        f"Geef ook aan waar in het document de informatie te vinden is:\n\n"
         f"Vraag: {user_question}\n"
         f"Antwoord:"
     )
     return custom_prompt
+
 
 def main():
     st.header("VA-Polisvoorwaardentool")

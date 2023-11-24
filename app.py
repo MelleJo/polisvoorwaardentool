@@ -94,7 +94,7 @@ def create_custom_prompt(user_question):
         f"- Geef indien mogelijk de specifieke sectie of pagina van het document aan waar het relevante antwoord gevonden kan worden.\n\n"
         f"Vraag: {user_question}\n"
         f"Antwoord:")
-    )
+        )
     return custom_prompt
 
 

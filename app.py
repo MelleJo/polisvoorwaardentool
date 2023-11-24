@@ -79,8 +79,8 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 def create_custom_prompt(user_question):
-    custom_prompt = 
-        (f"Dit document is een '{document_type}' verzekeringspolis. "
+    custom_prompt = (
+        f"Dit document is een '{document_type}' verzekeringspolis. "
         f"De volgende vraag moet worden beantwoord door directe informatie uit dit document te gebruiken. "
         f"Bij het zoeken naar een antwoord, houd rekening met de volgende punten:\n"
         f"- Controleer of de vraag betrekking heeft op algemene voorwaarden, uitzonderingen, specifieke clausules, of dekkingslimieten.\n"

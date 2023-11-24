@@ -80,11 +80,20 @@ def categorize_pdfs(pdf_list):
 
 def create_custom_prompt(user_question):
     custom_prompt = (
-        f"Geef het woord test voor elk antwoord dat je geeft."
-        f"Beantwoord deze vraag nauwkeurig en gedetailleerd op basis van de inhoud van het geselecteerde PDF-document. "
-        f"Geef ook aan waar in het document de informatie te vinden is:\n\n"
+        f"Dit document is een '{document_type}' verzekeringspolis. "
+        f"De volgende vraag moet worden beantwoord door directe informatie uit dit document te gebruiken. "
+        f"Bij het zoeken naar een antwoord, houd rekening met de volgende punten:\n"
+        f"- Controleer of de vraag betrekking heeft op algemene voorwaarden, uitzonderingen, specifieke clausules, of dekkingslimieten.\n"
+        f"- Zoek naar definities of specifieke termen die relevant zijn voor de vraag. Verzekeringsdocumenten gebruiken vaak specifiek gedefinieerde termen.\n"
+        f"- Let op de context waarin termen worden gebruikt. Een term kan verschillende betekenissen hebben afhankelijk van de sectie waarin deze voorkomt.\n"
+        f"- Als de vraag betrekking heeft op dekking, controleer dan zowel de secties over inbegrepen dekking als uitsluitingen.\n"
+        f"- Geef een duidelijk antwoord ('Ja, het is gedekt', 'Nee, het is niet gedekt', of 'Niet van toepassing') alleen als je expliciet bewijs in het document vindt. "
+        f"Leg uit waarom dit zo is, bijvoorbeeld 'Ja, het is gedekt, omdat in sectie 4, pagina 12, staat dat...'.\n"
+        f"- Als het antwoord niet duidelijk in het document staat, of als het onderwerp wordt genoemd in een context die geen definitief antwoord geeft, geef dan aan met 'Antwoord niet expliciet gevonden in het document'.\n"
+        f"- Vermijd het maken van aannames of het trekken van conclusies op basis van gerelateerde onderwerpen of algemene kennis.\n"
+        f"- Geef indien mogelijk de specifieke sectie of pagina van het document aan waar het relevante antwoord gevonden kan worden.\n\n"
         f"Vraag: {user_question}\n"
-        f"Antwoord:"
+        f"Antwoord:")
     )
     return custom_prompt
 

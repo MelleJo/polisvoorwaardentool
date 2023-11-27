@@ -153,7 +153,7 @@ def main():
         custom_prompt = create_custom_prompt(user_question)
 
         docs = knowledge_base.similarity_search(custom_prompt)
-        llm = OpenAI(model= "gpt-4-32k", temperature=0)
+        llm = OpenAI(model= "gpt-4", temperature=0)
         chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=custom_prompt)

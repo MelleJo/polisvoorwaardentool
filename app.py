@@ -151,14 +151,27 @@ def main():
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
         custom_prompt = create_custom_prompt(user_question)
-
         docs = knowledge_base.similarity_search(custom_prompt)
-        llm = OpenAI(model= "gpt-4", temperature=0)
-        chain = load_qa_chain(llm, chain_type="stuff")
-        with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=custom_prompt)
-            print(cb)
-        st.write(response)
+        
+        # Use OpenAI's chat completion endpoint
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",  # Specify the model
+                messages=[{"role": "system", "content": custom_prompt}]
+            )
+            answer = response.choices[0].message['content']
+        except Exception as e:
+            st.error(f"Error generating response: {e}")
+            answer = "Unable to generate response."
+
+        st.write(answer)
+        
+        # llm = OpenAI(model= "gpt-4", temperature=0)
+        # chain = load_qa_chain(llm, chain_type="stuff")
+        # with get_openai_callback() as cb:
+            # response = chain.run(input_documents=docs, question=custom_prompt)
+            # print(cb)
+        # st.write(response)
 
 if __name__ == '__main__':
     main()

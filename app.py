@@ -155,7 +155,7 @@ def main():
         
         # Use OpenAI's chat completion endpoint
         try:
-            response = openai.ChatCompletion.create(
+            response = OpenAI.ChatCompletion.create(
                 model="gpt-4",  # Specify the model
                 messages=[{"role": "system", "content": custom_prompt}]
             )

@@ -152,9 +152,13 @@ def main():
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
         custom_prompt = create_custom_prompt(user_question)
-        docs = knowledge_base.similarity_search(custom_prompt)
-        
-        # Use OpenAI's chat completion endpoint
+        docs = knowledge_base.similarity_search(custom_prompt, top_k=1)  # Zoek het meest relevante deel van het document
+
+        # Gebruik alleen het meest relevante deel van het document
+        relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
+
+        combined_input = relevant_doc_content + "\n\n" + custom_prompt
+
         try:
             response = openai.ChatCompletion.create(
                 model="gpt-4",  # Specify the model
@@ -169,6 +173,7 @@ def main():
             answer = "Ik kon helaas geen antwoord genereren."
 
         st.write(answer)
+
         
         # llm = OpenAI(model= "gpt-4", temperature=0)
         # chain = load_qa_chain(llm, chain_type="stuff")

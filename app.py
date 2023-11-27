@@ -163,7 +163,7 @@ def main():
                     {"role": "user", "content": custom_prompt}
                 ]
         )
-        answer = response.choices[0].message['content']
+            answer = response.choices[0].message['content']
     except Exception as e:
         st.error(f"Error generating response: {e}")
         answer = "Ik kon helaas geen antwoord genereren."

@@ -159,15 +159,14 @@ def main():
             response = openai.ChatCompletion.create(
                 model="gpt-4",  # Specify the model
                 messages=[
-                    {"role": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    {"system"},
-                    {"content": custom_prompt}
+                    {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    {"role": "user", "content": custom_prompt}
                 ]
-            )
-            answer = response.choices[0].message['content']
-        except Exception as e:
-            st.error(f"Error generating response: {e}")
-            answer = "Ik kon helaas geen antwoord genereren."
+        )
+        answer = response.choices[0].message['content']
+    except Exception as e:
+        st.error(f"Error generating response: {e}")
+        answer = "Ik kon helaas geen antwoord genereren."
 
         st.write(answer)
         

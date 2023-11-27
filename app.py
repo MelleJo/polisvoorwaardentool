@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+import openai
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -155,7 +156,7 @@ def main():
         
         # Use OpenAI's chat completion endpoint
         try:
-            response = OpenAI.ChatCompletion.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",  # Specify the model
                 messages=[{"role": "system", "content": custom_prompt}]
             )

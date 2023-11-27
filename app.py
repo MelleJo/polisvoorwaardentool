@@ -156,19 +156,19 @@ def main():
         
         # Use OpenAI's chat completion endpoint
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",  # Specify the model
-                messages=[
-                    {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    {"role": "user", "content": custom_prompt}
-                ]
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Specify the model
+            messages=[
+                {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                {"role": "user", "content": combined_input}
+            ]
         )
-            answer = response.choices[0].message['content']
-        except Exception as e:
-            st.error(f"Error generating response: {e}")
-            answer = "Ik kon helaas geen antwoord genereren."
+        answer = response.choices[0].message['content']
+    except Exception as e:
+        st.error(f"Error generating response: {e}")
+        answer = "Ik kon helaas geen antwoord genereren."
 
-        st.write(answer)
+    st.write(answer)
         
         # llm = OpenAI(model= "gpt-4", temperature=0)
         # chain = load_qa_chain(llm, chain_type="stuff")

@@ -164,9 +164,9 @@ def main():
                 ]
         )
             answer = response.choices[0].message['content']
-    except Exception as e:
-        st.error(f"Error generating response: {e}")
-        answer = "Ik kon helaas geen antwoord genereren."
+        except Exception as e:
+            st.error(f"Error generating response: {e}")
+            answer = "Ik kon helaas geen antwoord genereren."
 
         st.write(answer)
         

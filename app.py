@@ -158,7 +158,11 @@ def main():
         try:
             response = openai.ChatCompletion.create(
                 model="gpt-4",  # Specify the model
-                messages=[{"role": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden." "system", "content": custom_prompt}]
+                messages=[
+                    {"role": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    {"system"},
+                    {"content": custom_prompt}
+                ]
             )
             answer = response.choices[0].message['content']
         except Exception as e:

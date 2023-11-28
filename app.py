@@ -184,7 +184,7 @@ def main():
         #)
         
         llm = OpenAI()
-        chain = load_qa_chain(completion, chain_type="stuff")
+        chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=custom_prompt)
             print(cb)

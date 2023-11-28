@@ -199,7 +199,7 @@ def main():
         )
         messages = [
             SystemMessage(
-                content="Jij bent een expert in schadebehandelingen. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen."
+                content="Jij bent een expert in schadebehandelingen. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO"
             ),
             HumanMessage(
                 content="user_question"

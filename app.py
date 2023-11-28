@@ -6,6 +6,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
+from lanchaing.prompts import PromptTemplate
 #from openai import OpenAI
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
@@ -151,8 +152,10 @@ def main():
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        prompt = user_question
+        prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
+        prompt.format(vraag="user_question)
         docs = knowledge_base.similarity_search(prompt)  # Zoek het meest relevante deel van het document
+    
 
         # Gebruik alleen het meest relevante deel van het document
         # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."

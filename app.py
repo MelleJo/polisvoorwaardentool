@@ -6,7 +6,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
-from openai import OpenAI
+#from openai import OpenAI
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
 
@@ -152,7 +152,7 @@ def main():
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
         custom_prompt = create_custom_prompt(user_question)
-        docs = knowledge_base.similarity_search(custom_prompt, top_k=1)  # Zoek het meest relevante deel van het document
+        # docs = knowledge_base.similarity_search(custom_prompt, top_k=1)  # Zoek het meest relevante deel van het document
 
         # Gebruik alleen het meest relevante deel van het document
         # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
@@ -174,16 +174,16 @@ def main():
 
         #st.write(answer)
 
-        completion = openai.ChatCompletion.create(
-            model = "gpt-4",
-            messages = [
-                    {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    {"role": "user", "content":""}
-            ],
-            temperature = 0
-        )
+       #completion = openai.ChatCompletion.create(
+            #model = "gpt-4",
+            #messages = [
+                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    #{"role": "user", "content":""}
+            #],
+            #temperature = 0
+        #)
         
-        llm = OpenAI(model= "gpt-4-0314", temperature=0)
+        llm = OpenAI()
         chain = load_qa_chain(completion, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=custom_prompt)

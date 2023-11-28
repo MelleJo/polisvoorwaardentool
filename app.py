@@ -157,8 +157,16 @@ def main():
 
     knowledge_base = knowledge_bases[selected_pdf_path]
 
+    custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO"
+    system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
+    
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
+        messages = [
+            system_message_template.format(),
+            HumanMessage(content=user_question)
+        ]
+        
         # prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
         # prompt.format(vraag="user_question")
         docs = knowledge_base.similarity_search(user_question)  # Zoek het meest relevante deel van het document
@@ -197,14 +205,7 @@ def main():
             model_name= "gpt-3.5-turbo-1106",
             temperature = 0
         )
-        messages = [
-            SystemMessage(
-                content="Jij bent een expert in schadebehandelingen. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO"
-            ),
-            HumanMessage(
-                content="user_question"
-            ),
-        ]
+        
         chat(messages)
         chain = load_qa_chain(chat, chain_type="stuff")
         with get_openai_callback() as cb:

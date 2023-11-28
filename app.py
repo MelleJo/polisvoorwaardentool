@@ -79,23 +79,23 @@ def categorize_pdfs(pdf_list):
 
     return category_map
 
-def create_custom_prompt(user_question):
-    custom_prompt = (
-        f"Dit document is een polisvoorwaardenblad. "
-        f"De volgende vraag moet worden beantwoord door directe informatie uit dit document te gebruiken. "
-        f"Bij het zoeken naar een antwoord, houd rekening met de volgende punten:\n"
-        f"- Controleer of de vraag betrekking heeft op algemene voorwaarden, uitzonderingen, specifieke clausules, of dekkingslimieten.\n"
-        f"- Zoek naar definities of specifieke termen die relevant zijn voor de vraag. Verzekeringsdocumenten gebruiken vaak specifiek gedefinieerde termen.\n"
-        f"- Let op de context waarin termen worden gebruikt. Een term kan verschillende betekenissen hebben afhankelijk van de sectie waarin deze voorkomt.\n"
-        f"- Als de vraag betrekking heeft op dekking, controleer dan zowel de secties over inbegrepen dekking als uitsluitingen.\n"
-        f"- Geef een duidelijk antwoord ('Ja, het is gedekt', 'Nee, het is niet gedekt', of 'Niet van toepassing') alleen als je expliciet bewijs in het document vindt. "
-        f"Leg uit waarom dit zo is, bijvoorbeeld 'Ja, het is gedekt, omdat in sectie 4, pagina 12, staat dat...'.\n"
-        f"- Als het antwoord niet duidelijk in het document staat, of als het onderwerp wordt genoemd in een context die geen definitief antwoord geeft, geef dan aan met 'Antwoord niet expliciet gevonden in het document'.\n"
-        f"- Vermijd het maken van aannames of het trekken van conclusies op basis van gerelateerde onderwerpen of algemene kennis.\n"
-        f"- Geef indien mogelijk de specifieke sectie of pagina van het document aan waar het relevante antwoord gevonden kan worden.\n\n"
-        f"Vraag: {user_question}\n"
-        f"Antwoord:")
-    return custom_prompt
+#def create_custom_prompt(user_question):
+    #custom_prompt = #(
+        #f"Dit document is een polisvoorwaardenblad. "
+        #f"De volgende vraag moet worden beantwoord door directe informatie uit dit document te gebruiken. "
+        #f"Bij het zoeken naar een antwoord, houd rekening met de volgende punten:\n"
+        #f"- Controleer of de vraag betrekking heeft op algemene voorwaarden, uitzonderingen, specifieke clausules, of dekkingslimieten.\n"
+        #f"- Zoek naar definities of specifieke termen die relevant zijn voor de vraag. Verzekeringsdocumenten gebruiken vaak specifiek gedefinieerde termen.\n"
+        #f"- Let op de context waarin termen worden gebruikt. Een term kan verschillende betekenissen hebben afhankelijk van de sectie waarin deze voorkomt.\n"
+        #f"- Als de vraag betrekking heeft op dekking, controleer dan zowel de secties over inbegrepen dekking als uitsluitingen.\n"
+        #f"- Geef een duidelijk antwoord ('Ja, het is gedekt', 'Nee, het is niet gedekt', of 'Niet van toepassing') alleen als je expliciet bewijs in het document vindt. "
+        #f"Leg uit waarom dit zo is, bijvoorbeeld 'Ja, het is gedekt, omdat in sectie 4, pagina 12, staat dat...'.\n"
+        #f"- Als het antwoord niet duidelijk in het document staat, of als het onderwerp wordt genoemd in een context die geen definitief antwoord geeft, geef dan aan met 'Antwoord niet expliciet gevonden in het document'.\n"
+        #f"- Vermijd het maken van aannames of het trekken van conclusies op basis van gerelateerde onderwerpen of algemene kennis.\n"
+        #f"- Geef indien mogelijk de specifieke sectie of pagina van het document aan waar het relevante antwoord gevonden kan worden.\n\n"
+        #f"Vraag: {user_question}\n"
+        #f"Antwoord:")#
+    #return custom_prompt
 
 
 def main():
@@ -189,7 +189,7 @@ def main():
         )
         chain = load_qa_chain(chat, chain_type="stuff")
         with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=custom_prompt)
+            response = chain.run(input_documents=docs, question=())
             print(cb)
         st.write(response)
 

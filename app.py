@@ -152,9 +152,9 @@ def main():
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
-        prompt.format(vraag="user_question")
-        docs = knowledge_base.similarity_search(prompt)  # Zoek het meest relevante deel van het document
+        # prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
+        # prompt.format(vraag="user_question")
+        docs = knowledge_base.similarity_search(user_question)  # Zoek het meest relevante deel van het document
     
 
         # Gebruik alleen het meest relevante deel van het document

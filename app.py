@@ -164,7 +164,7 @@ def main():
                 model="gpt-4",  # Specify the model
                 messages=[
                     {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    {"role": "user", "content": combined_input}
+                    {"role": "user", "content"}
                 ]
             )
             answer = response.choices[0].message['content']

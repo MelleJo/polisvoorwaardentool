@@ -174,7 +174,7 @@ def main():
 
         #st.write(answer)
 
-        completion = openai.ChatCompletion.create
+        completion = openai.ChatCompletion.create(
             model = "gpt-4",
             messages = [
                     {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},

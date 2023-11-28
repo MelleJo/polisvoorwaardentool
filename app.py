@@ -187,7 +187,7 @@ def main():
         #)
         
         chat = ChatOpenAI(
-            model_name= "gpt-4",
+            model_name= "gpt-3.5-turbo-1106",
             temperature = 0
         )
         chain = load_qa_chain(chat, chain_type="stuff")

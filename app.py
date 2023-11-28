@@ -155,9 +155,9 @@ def main():
         docs = knowledge_base.similarity_search(custom_prompt, top_k=1)  # Zoek het meest relevante deel van het document
 
         # Gebruik alleen het meest relevante deel van het document
-        relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
+        # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
 
-        combined_input = relevant_doc_content + "\n\n" + custom_prompt
+        # combined_input = relevant_doc_content + "\n\n" + custom_prompt
 
         try:
             response = openai.ChatCompletion.create(

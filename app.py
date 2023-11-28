@@ -5,7 +5,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 #from openai import OpenAI
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
@@ -183,8 +183,11 @@ def main():
             #temperature = 0
         #)
         
-        llm = OpenAI(model_name="gpt-4")
-        chain = load_qa_chain(llm, chain_type="stuff")
+        chat = ChatOpenAI(
+            model_name= "gpt-4",
+            temperature = 0
+        )
+        chain = load_qa_chain(chat, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=custom_prompt)
             print(cb)

@@ -151,8 +151,8 @@ def main():
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        custom_prompt = create_custom_prompt(user_question)
-        docs = knowledge_base.similarity_search(custom_prompt)  # Zoek het meest relevante deel van het document
+        #custom_prompt = create_custom_prompt(user_question)
+        docs = knowledge_base.similarity_search()  # Zoek het meest relevante deel van het document
 
         # Gebruik alleen het meest relevante deel van het document
         # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."

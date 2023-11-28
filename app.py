@@ -6,9 +6,16 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
+from langchain.schema import HumanMessage, SystemMessage
 from langchain.prompts import PromptTemplate
 #from openai import OpenAI
 from langchain.callbacks import get_openai_callback
+#from langchain.memory import ConversationBufferMemory
 from hashlib import sha256
 
 # Set page config
@@ -190,6 +197,15 @@ def main():
             model_name= "gpt-3.5-turbo-1106",
             temperature = 0
         )
+        messages = [
+            SystemMessage(
+                content="Jij bent een expert in schadebehandelingen. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen."
+            ),
+            HumanMessage(
+                content="user_question"
+            ),
+        ]
+        chat(messages)
         chain = load_qa_chain(chat, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=(user_question))

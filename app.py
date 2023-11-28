@@ -152,8 +152,8 @@ def main():
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
-        prompt.format(vraag="user_question)
+        #prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
+        #prompt.format(vraag="user_question")
         docs = knowledge_base.similarity_search(prompt)  # Zoek het meest relevante deel van het document
     
 
@@ -192,7 +192,7 @@ def main():
         )
         chain = load_qa_chain(chat, chain_type="stuff")
         with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=())
+            response = chain.run(input_documents=docs, question=(user_question))
             print(cb)
         st.write(response)
 

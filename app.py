@@ -159,20 +159,20 @@ def main():
 
         # combined_input = relevant_doc_content + "\n\n" + custom_prompt
 
-        try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",  # Specify the model
-                messages=[
-                    {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    {"role": "user", "content"}
-                ]
-            )
-            answer = response.choices[0].message['content']
-        except Exception as e:
-            st.error(f"Error generating response: {e}")
-            answer = "Ik kon helaas geen antwoord genereren."
+        #try:
+            #response = openai.ChatCompletion.create(
+                #model="gpt-4",  # Specify the model
+                #messages=[
+                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    #{"role": "user", "content"}
+                #]
+            #)
+            #answer = response.choices[0].message['content']
+        #except Exception as e:
+            #st.error(f"Error generating response: {e}")
+            #answer = "Ik kon helaas geen antwoord genereren."
 
-        st.write(answer)
+        #st.write(answer)
 
         
         llm = OpenAI(model= "gpt-4", temperature=0)

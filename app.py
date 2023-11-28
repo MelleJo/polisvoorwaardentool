@@ -183,7 +183,7 @@ def main():
             #temperature = 0
         #)
         
-        llm = OpenAI()
+        llm = OpenAI(model_name="gpt-4")
         chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=custom_prompt)

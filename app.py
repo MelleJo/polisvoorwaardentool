@@ -174,9 +174,17 @@ def main():
 
         #st.write(answer)
 
+        completion = openai.ChatCompletion.create
+            model = "gpt-4",
+            messages = [
+                    {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    {"role": "user", "content"}
+            ],
+            temperature = 0
+        )
         
         llm = OpenAI(model= "gpt-4-0314", temperature=0)
-        chain = load_qa_chain(llm, chain_type="stuff")
+        chain = load_qa_chain(completion, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=custom_prompt)
             print(cb)

@@ -178,7 +178,7 @@ def main():
             model = "gpt-4",
             messages = [
                     {"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    {"role": "user", "content"}
+                    {"role": "user", "content":""}
             ],
             temperature = 0
         )

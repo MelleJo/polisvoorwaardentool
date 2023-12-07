@@ -1,4 +1,5 @@
 import os
+import openai
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
@@ -18,6 +19,8 @@ from langchain.callbacks import get_openai_callback
 #from langchain.memory import ConversationBufferMemory
 from hashlib import sha256
 
+assistant_id = st.secrets["openai_assistant_id"]
+
 # Set page config
 st.set_page_config(page_title="VA-Polisvoorwaardentool")
 
@@ -31,6 +34,27 @@ if sha256(password_input.encode()).hexdigest() != hashed_password:
 
 # Global variable to cache embeddings to reduce repeated API calls
 knowledge_bases = {}
+
+# Aan het begin van je script na het importeren van openai en het instellen van de API-sleutel
+
+def submit_message(assistant_id, thread_id, user_message):
+    response = openai.Message.create(
+        model="gpt-3.5-turbo-1106",
+        messages=[{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                  {"role": "user", "content": user_message}],
+        assistant_id=assistant_id,
+        thread_id=thread_id
+    )
+    return response
+
+def get_response(thread_id):
+    response = openai.Thread.retrieve(thread_id=thread_id)
+    return response
+
+def main():
+    # Je bestaande main() functie
+
+
 
 def categorize_pdfs(pdf_list):
     category_map = {}

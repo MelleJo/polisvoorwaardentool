@@ -131,6 +131,11 @@ def categorize_pdfs(pdf_list):
 
 
 def main():
+    
+    session_id = st.session_state._get_session_id()
+    thread_id = f"thread_{session_id}"
+
+    
     st.header("VA-Polisvoorwaardentool")
 
     api_key = st.secrets["OPENAI_API_KEY"]
@@ -186,56 +191,17 @@ def main():
     
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        messages = [
-            system_message_template.format(),
-            HumanMessage(content=user_question)
-        ]
+        response = submit_message(assistant_id, "unique_thread_id_for_user", user_question)
+
+        if response:
+            answer = response["choices"][0]["message"]["content"]
+            st.write(answer)
         
-        # prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
-        # prompt.format(vraag="user_question")
-        docs = knowledge_base.similarity_search(user_question)  # Zoek het meest relevante deel van het document
-    
 
-        # Gebruik alleen het meest relevante deel van het document
-        # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
+       
 
-        # combined_input = relevant_doc_content + "\n\n" + custom_prompt
-
-        #try:
-            #response = openai.ChatCompletion.create(
-                #model="gpt-4",  # Specify the model
-                #messages=[
-                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    #{"role": "user", "content"}
-                #]
-            #)
-            #answer = response.choices[0].message['content']
-        #except Exception as e:
-            #st.error(f"Error generating response: {e}")
-            #answer = "Ik kon helaas geen antwoord genereren."
-
-        #st.write(answer)
-
-       #completion = openai.ChatCompletion.create(
-            #model = "gpt-4",
-            #messages = [
-                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    #{"role": "user", "content":""}
-            #],
-            #temperature = 0
-        #)
-        
-        chat = ChatOpenAI(
-            model_name= "gpt-3.5-turbo-1106",
-            temperature = 0
-        )
-        
-        chat(messages)
-        chain = load_qa_chain(chat, chain_type="stuff")
-        with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=(user_question))
-            print(cb)
-        st.write(response)
+      
+      
 
 if __name__ == '__main__':
     main()

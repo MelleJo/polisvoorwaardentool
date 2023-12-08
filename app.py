@@ -128,7 +128,7 @@ def main():
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
 
 
-        if selected_pdf_path and user_question:
+        if selected_pdf_path:
             with open(selected_pdf_path, "rb") as file:
                 st.download_button(
                     label="Download polisvoorwaarden",

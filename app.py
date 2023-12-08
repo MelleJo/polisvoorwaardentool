@@ -97,6 +97,10 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 def main():
+
+    client = OpenAI()
+    thread = client.beta.threads.create()
+    
     if 'session_id' not in st.session_state:
         st.session_state['session_id'] = str(uuid.uuid4())
 
@@ -148,12 +152,29 @@ def main():
 
         knowledge_base = knowledge_bases[selected_pdf_path]
 
-        user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
         if user_question:
-            response = submit_message(assistant_id, thread_id, user_question)
-            if response:
-                answer = response["choices"][0]["message"]["content"]
-                st.write(answer)
+    # Verstuur de vraag naar de thread
+    client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=user_question
+    )
+    
+    # Start de run met de assistant
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant_id
+    )
+    
+    # Wacht tot de run is voltooid en verwerk het antwoord
+    # (Je moet mogelijk de run-status controleren en een lus gebruiken om te wachten)
+    # Dit is een vereenvoudigd voorbeeld. Je moet mogelijk wachten op en verwerken van de run-status
+    # Na het voltooien van de run, haal de antwoorden op
+    answers = client.beta.threads.messages.list(thread_id=thread.id)
+    for message in answers['data']:
+        if message['role'] == 'assistant':
+            st.write(message['content'][0]['text']['value'])
+
 
 if __name__ == '__main__':
     main()

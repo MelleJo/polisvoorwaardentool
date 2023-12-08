@@ -1,6 +1,7 @@
 import os
 import openai
 import streamlit as st
+import uuid
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -95,10 +96,11 @@ def categorize_pdfs(pdf_list):
 
     return category_map
 
-
 def main():
-    session_id = st.session_state._get_session_id()
-    thread_id = f"thread_{session_id}"
+    if 'session_id' not in st.session_state:
+        st.session_state['session_id'] = str(uuid.uuid4())
+
+    thread_id = f"thread_{st.session_state['session_id']}"
 
     st.header("VA-Polisvoorwaardentool")
 
@@ -112,6 +114,7 @@ def main():
         st.warning("Geen polisvoorwaarden gevonden.")
         return
 
+    selected_category =
     selected_category = st.selectbox("Kies een categorie:", categories)
     available_pdfs = category_map[selected_category]
     pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]
@@ -128,30 +131,30 @@ def main():
                 mime="application/pdf"
             )
 
-    if selected_pdf_path not in knowledge_bases:
-        with open(selected_pdf_path, "rb") as f:
-            pdf_reader = PdfReader(f)
-            text = ""
-            for page in pdf_reader.pages:
-                text += page.extract_text()
-            text_splitter = CharacterTextSplitter(
-                separator="\n",
-                chunk_size=1000,
-                chunk_overlap=200,
-                length_function=len
-            )
-            chunks = text_splitter.split_text(text)
-            embeddings = OpenAIEmbeddings()
-            knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
+        if selected_pdf_path not in knowledge_bases:
+            with open(selected_pdf_path, "rb") as f:
+                pdf_reader = PdfReader(f)
+                text = ""
+                for page in pdf_reader.pages:
+                    text += page.extract_text()
+                text_splitter = CharacterTextSplitter(
+                    separator="\n",
+                    chunk_size=1000,
+                    chunk_overlap=200,
+                    length_function=len
+                )
+                chunks = text_splitter.split_text(text)
+                embeddings = OpenAIEmbeddings()
+                knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
-    knowledge_base = knowledge_bases[selected_pdf_path]
-    
-    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
-    if user_question:
-        response = submit_message(assistant_id, thread_id, user_question)
-        if response:
-            answer = response["choices"][0]["message"]["content"]
-            st.write(answer)
+        knowledge_base = knowledge_bases[selected_pdf_path]
+
+        user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+        if user_question:
+            response = submit_message(assistant_id, thread_id, user_question)
+            if response:
+                answer = response["choices"][0]["message"]["content"]
+                st.write(answer)
 
 if __name__ == '__main__':
     main()

@@ -98,7 +98,7 @@ def categorize_pdfs(pdf_list):
 
 def main():
 
-    client = OpenAI()
+    client = openai()
     thread = client.beta.threads.create()
     
     if 'session_id' not in st.session_state:

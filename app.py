@@ -98,8 +98,8 @@ def categorize_pdfs(pdf_list):
 
 def main():
 
-    client = openai()
-    thread = client.beta.threads.create()
+    
+    thread = openai.beta.threads.create()
     
     if 'session_id' not in st.session_state:
         st.session_state['session_id'] = str(uuid.uuid4())
@@ -155,14 +155,14 @@ def main():
 
         if user_question:
         # Verstuur de vraag naar de thread
-            client.beta.threads.messages.create(
+            openai.beta.threads.messages.create(
             thread_id=thread.id,
             role="user",
             content=user_question
         )
     
     # Start de run met de assistant
-    run = client.beta.threads.runs.create(
+    run = openai.beta.threads.runs.create(
         thread_id=thread.id,
         assistant_id=assistant_id
     )
@@ -171,7 +171,7 @@ def main():
     # (Je moet mogelijk de run-status controleren en een lus gebruiken om te wachten)
     # Dit is een vereenvoudigd voorbeeld. Je moet mogelijk wachten op en verwerken van de run-status
     # Na het voltooien van de run, haal de antwoorden op
-    answers = client.beta.threads.messages.list(thread_id=thread.id)
+    answers = openai.beta.threads.messages.list(thread_id=thread.id)
     for message in answers['data']:
         if message['role'] == 'assistant':
             st.write(message['content'][0]['text']['value'])

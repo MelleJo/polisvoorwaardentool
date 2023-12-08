@@ -125,6 +125,9 @@ def main():
 
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
+    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+
+
     if selected_pdf_path:
         with open(selected_pdf_path, "rb") as file:
             st.download_button(

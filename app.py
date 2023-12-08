@@ -156,12 +156,12 @@ def main():
         knowledge_base = knowledge_bases[selected_pdf_path]
 
         if user_question:
-    # Verstuur de vraag naar de thread
-    client.beta.threads.messages.create(
-        thread_id=thread.id,
-        role="user",
-        content=user_question
-    )
+        # Verstuur de vraag naar de thread
+            client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=user_question
+        )
     
     # Start de run met de assistant
     run = client.beta.threads.runs.create(

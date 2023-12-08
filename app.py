@@ -114,7 +114,6 @@ def main():
         st.warning("Geen polisvoorwaarden gevonden.")
         return
 
-    selected_category =
     selected_category = st.selectbox("Kies een categorie:", categories)
     available_pdfs = category_map[selected_category]
     pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]

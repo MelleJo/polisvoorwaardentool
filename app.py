@@ -1,5 +1,4 @@
 import os
-from openai import OpenAI
 import openai
 import streamlit as st
 import uuid
@@ -9,7 +8,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from hashlib import sha256
 
-# Definieer Assistant ID en API Key
+# Define Assistant ID and API Key
 assistant_id = st.secrets["openai_assistant_id"]
 api_key = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_KEY"] = api_key
@@ -98,13 +97,9 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 def main():
+    # Creating a thread using the openai module
+    thread = openai.Thread.create()
 
-    
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    thread = client.threads.create()
-
-
-    
     if 'session_id' not in st.session_state:
         st.session_state['session_id'] = str(uuid.uuid4())
 
@@ -137,7 +132,7 @@ def main():
                 data=file,
                 file_name=selected_pdf_name,
                 mime="application/pdf"
-                )
+            )
 
         if selected_pdf_path not in knowledge_bases:
             with open(selected_pdf_path, "rb") as f:
@@ -158,28 +153,24 @@ def main():
         knowledge_base = knowledge_bases[selected_pdf_path]
 
         if user_question:
-        # Verstuur de vraag naar de thread
-            client.threads.messages.create(
-            thread_id=thread.id,
-            role="user",
-            content=user_question
-        )
+            # Verstuur de vraag naar de thread
+            openai.ThreadMessage.create(
+                thread_id=thread.id,
+                role="user",
+                content=user_question
+            )
     
-    # Start de run met de assistant
-    run = client.threads.runs.create(
-        thread_id=thread.id,
-        assistant_id=assistant_id
-    )
+            # Start de run met de assistant
+            run = openai.ThreadRun.create(
+                thread_id=thread.id,
+                assistant_id=assistant_id
+            )
     
-    # Wacht tot de run is voltooid en verwerk het antwoord
-    # (Je moet mogelijk de run-status controleren en een lus gebruiken om te wachten)
-    # Dit is een vereenvoudigd voorbeeld. Je moet mogelijk wachten op en verwerken van de run-status
-    # Na het voltooien van de run, haal de antwoorden op
-    answers = client.threads.messages.list(thread_id=thread.id)
-    for message in answers['data']:
-        if message['role'] == 'assistant':
-            st.write(message['content'][0]['text']['value'])
-
+            # Wacht tot de run is voltooid en verwerk het antwoord
+            answers = openai.ThreadMessage.list(thread_id=thread.id)
+            for message in answers['data']:
+                if message['role'] == 'assistant':
+                    st.write(message['content'][0]['text']['value'])
 
 if __name__ == '__main__':
     main()

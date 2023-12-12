@@ -168,11 +168,15 @@ def main():
 
         if user_question:
             # Verstuur de vraag naar de thread
-            openai.ThreadMessage.create(
-                thread_id=thread.id,
-                role="user",
-                content=user_question
-            )
+            def send_message_to_thread(thread_id, user_message):
+                payload = {
+                    "messages": [
+                        {"role": "user", "content": user_message}
+                    ]
+                }
+                response = requests.post(f'https://api.openai.com/v1/threads/{thread_id}/messages', json=payload, headers=headers)
+                return response.json() if response.status_code == 200 else None
+
     
             # Start de run met de assistant
             run = openai.ThreadRun.create(

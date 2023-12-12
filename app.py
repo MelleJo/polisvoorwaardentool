@@ -203,8 +203,7 @@ def main():
         knowledge_base = knowledge_bases[selected_pdf_path]
 
         if user_question:
-           if user_question:
-        send_message_to_thread(thread_id, user_question, api_key)
+            send_message_to_thread(thread_id, user_question, api_key)
         
         # Start a run with the assistant
         run_response = start_run(thread_id, assistant_id, api_key)

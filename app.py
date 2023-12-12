@@ -55,6 +55,32 @@ def send_message_to_thread(thread_id, user_message, api_key):
     response = requests.post(f'https://api.openai.com/v1/threads/{thread_id}/messages', json=payload, headers=headers)
     return response.json() if response.status_code == 200 else None
 
+def start_run(thread_id, assistant_id, api_key):
+    url = f"https://api.openai.com/v1/threads/{thread_id}/runs"
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'assistant_id': assistant_id
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
+def get_run_responses(thread_id, api_key):
+    url = f"https://api.openai.com/v1/threads/{thread_id}/messages"
+    headers = {
+        'Authorization': f'Bearer {api_key}'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
@@ -177,9 +203,18 @@ def main():
         knowledge_base = knowledge_bases[selected_pdf_path]
 
         if user_question:
-            send_message_to_thread(thread_id, user_question, api_key)
-            # Here you'll need to implement the logic to start a run with the assistant and retrieve answers
-            # This part is pending as it requires specific API endpoint details from OpenAI
+           if user_question:
+        send_message_to_thread(thread_id, user_question, api_key)
+        
+        # Start a run with the assistant
+        run_response = start_run(thread_id, assistant_id, api_key)
+        if run_response:
+            # Retrieve answers from the run
+            answers = get_run_responses(thread_id, api_key)
+            if answers:
+                for message in answers['data']:
+                    if message['role'] == 'assistant':
+                        st.write(message['content'][0]['text']['value'])
 
 if __name__ == '__main__':
     main()

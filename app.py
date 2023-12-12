@@ -175,7 +175,7 @@ def main():
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
-    if selected_pdf_path:
+    if selected_pdf_path and user_question:
         with open(selected_pdf_path, "rb") as file:
             st.download_button(
                 label="Download polisvoorwaarden",
@@ -200,10 +200,7 @@ def main():
                 embeddings = OpenAIEmbeddings()
                 knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
-        knowledge_base = knowledge_bases[selected_pdf_path]
-
-        if user_question:
-            send_message_to_thread(thread_id, user_question, api_key)
+        send_message_to_thread(thread_id, user_question, api_key)
         
         # Start a run with the assistant
         run_response = start_run(thread_id, assistant_id, api_key)

@@ -53,6 +53,7 @@ def send_message_to_thread(thread_id, user_message, api_key):
         ]
     }
     response = requests.post(f'https://api.openai.com/v1/threads/{thread_id}/messages', json=payload, headers=headers)
+    print(f"Send Message Response: {response.json()}")
     return response.json() if response.status_code == 200 else None
 
 def start_run(thread_id, assistant_id, api_key):
@@ -65,10 +66,8 @@ def start_run(thread_id, assistant_id, api_key):
         'assistant_id': assistant_id
     }
     response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return None
+    print(f"Start Run Response Status: {response.status_code}, Content: {response.content}")
+    return response.json() if response.status_code == 200 else None
 
 def get_run_responses(thread_id, api_key):
     url = f"https://api.openai.com/v1/threads/{thread_id}/messages"
@@ -76,10 +75,8 @@ def get_run_responses(thread_id, api_key):
         'Authorization': f'Bearer {api_key}'
     }
     response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return None
+    print(f"Get Run Responses Status: {response.status_code}, Content: {response.content}")
+    return response.json() if response.status_code == 200 else None
 
 def categorize_pdfs(pdf_list):
     category_map = {}
@@ -201,11 +198,9 @@ def main():
                 knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
         send_message_to_thread(thread_id, user_question, api_key)
-        
-        # Start a run with the assistant
+
         run_response = start_run(thread_id, assistant_id, api_key)
         if run_response:
-            # Retrieve answers from the run
             answers = get_run_responses(thread_id, api_key)
             if answers:
                 for message in answers['data']:

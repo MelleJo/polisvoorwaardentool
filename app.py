@@ -2,6 +2,7 @@ import os
 import openai
 import streamlit as st
 import uuid
+import requests
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -98,12 +99,25 @@ def categorize_pdfs(pdf_list):
 
 def main():
     # Creating a thread using the openai module
-    thread = openai.Thread.create()
+    headers = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {api_key}',
+    'OpenAI-Beta': 'assistants=v1'
+}
+
+    response = requests.post('https://api.openai.com/v1/threads', headers=headers)
+    if response.status_code == 200:
+        thread = response.json()
+    else:
+        st.error("Failed to create a thread")
+        return
+
 
     if 'session_id' not in st.session_state:
         st.session_state['session_id'] = str(uuid.uuid4())
 
-    thread_id = f"thread_{st.session_state['session_id']}"
+    thread_id = thread.get('id')  # Extracting the thread ID from the response
+
 
     st.header("VA-Polisvoorwaardentool")
 

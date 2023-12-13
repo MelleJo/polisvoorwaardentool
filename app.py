@@ -6,16 +6,8 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
+from langchain.prompts.chat import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
-from langchain.prompts import PromptTemplate
-#from openai import OpenAI
-from langchain.callbacks import get_openai_callback
-#from langchain.memory import ConversationBufferMemory
 from hashlib import sha256
 
 # Set page config
@@ -36,75 +28,15 @@ def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
         prefix = os.path.basename(pdf).split('_')[0]
+        category = "Overige"
         if prefix == "Auto":
             category = "Autoverzekering"
-        elif prefix == "AVB":
-            category = "Bedrijfsaansprakelijkheidsverzekering"
-        elif prefix == "BestAVB":
-            category = "AVB Bestuurders"
-        elif prefix == "BS":
-            category = "Bedrijfsschadeverzekering"
-        elif prefix == "BestAuto":
-            category = "Bestelautoverzekering"
-        elif prefix == "Brand":
-            category = "Brandverzekeringen"
-        elif prefix == "Cara":
-            category = "Caravanverzekering"
-        elif prefix == "EigVerv":
-            category = "Eigen vervoer"
-        elif prefix == "Fiets":
-            category = "Fietsverzekering"
-        elif prefix == "Geb":
-            category = "Gebouwen"
-        elif prefix == "GW":
-            category = "Goed Werkgeverschap"
-        elif prefix == "IB":
-            category = "Inboedelverzekering"
-        elif prefix == "Inv":
-            category = "Inventaris"
-        elif prefix == "Mot":
-            category = "Motorverzekering"
-        elif prefix == "RB":
-            category = "Rechtsbijstandverzekering"
-        elif prefix == "Reis":
-            category = "Reisverzekering"
-        elif prefix == "Scoot":
-            category = "Scootmobielverzekering"
-        elif prefix == "WEGAS":
-            category = "WEGAS"
-        elif prefix == "WerkMat":
-            category = "Werk- en landbouwmaterieelverzekering"
-        elif prefix == "WEGAM":
-            category = "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)"
-        elif prefix == "Woon":
-            category = "Woonhuisverzekering"
-        else:
-            category = "Overige"
-
+        # ... (Add additional categorization here)
         if category not in category_map:
             category_map[category] = []
         category_map[category].append(pdf)
 
     return category_map
-
-#def create_custom_prompt(user_question):
-    #custom_prompt = #(
-        #f"Dit document is een polisvoorwaardenblad. "
-        #f"De volgende vraag moet worden beantwoord door directe informatie uit dit document te gebruiken. "
-        #f"Bij het zoeken naar een antwoord, houd rekening met de volgende punten:\n"
-        #f"- Controleer of de vraag betrekking heeft op algemene voorwaarden, uitzonderingen, specifieke clausules, of dekkingslimieten.\n"
-        #f"- Zoek naar definities of specifieke termen die relevant zijn voor de vraag. Verzekeringsdocumenten gebruiken vaak specifiek gedefinieerde termen.\n"
-        #f"- Let op de context waarin termen worden gebruikt. Een term kan verschillende betekenissen hebben afhankelijk van de sectie waarin deze voorkomt.\n"
-        #f"- Als de vraag betrekking heeft op dekking, controleer dan zowel de secties over inbegrepen dekking als uitsluitingen.\n"
-        #f"- Geef een duidelijk antwoord ('Ja, het is gedekt', 'Nee, het is niet gedekt', of 'Niet van toepassing') alleen als je expliciet bewijs in het document vindt. "
-        #f"Leg uit waarom dit zo is, bijvoorbeeld 'Ja, het is gedekt, omdat in sectie 4, pagina 12, staat dat...'.\n"
-        #f"- Als het antwoord niet duidelijk in het document staat, of als het onderwerp wordt genoemd in een context die geen definitief antwoord geeft, geef dan aan met 'Antwoord niet expliciet gevonden in het document'.\n"
-        #f"- Vermijd het maken van aannames of het trekken van conclusies op basis van gerelateerde onderwerpen of algemene kennis.\n"
-        #f"- Geef indien mogelijk de specifieke sectie of pagina van het document aan waar het relevante antwoord gevonden kan worden.\n\n"
-        #f"Vraag: {user_question}\n"
-        #f"Antwoord:")#
-    #return custom_prompt
-
 
 def main():
     st.header("VA-Polisvoorwaardentool")
@@ -123,11 +55,9 @@ def main():
         return
 
     selected_category = st.selectbox("Kies een categorie:", categories)
-
     available_pdfs = category_map[selected_category]
     pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]
     selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
-
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
 
     if selected_pdf_path:
@@ -145,72 +75,25 @@ def main():
             text = ""
             for page in pdf_reader.pages:
                 text += page.extract_text()
-            text_splitter = CharacterTextSplitter(
-                separator="\n",
-                chunk_size=1000,
-                chunk_overlap=200,
-                length_function=len
-            )
+            text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=200, length_function=len)
             chunks = text_splitter.split_text(text)
             embeddings = OpenAIEmbeddings()
             knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
     knowledge_base = knowledge_bases[selected_pdf_path]
-
     custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO"
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        messages = [
-            system_message_template.format(),
-            HumanMessage(content=user_question)
-        ]
-
-        # prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
-        # prompt.format(vraag="user_question")
+        messages = [system_message_template.format(), HumanMessage(content=user_question)]
         docs = knowledge_base.similarity_search(user_question)  # Zoek het meest relevante deel van het document
 
-
-        # Gebruik alleen het meest relevante deel van het document
-        # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
-
-        # combined_input = relevant_doc_content + "\n\n" + custom_prompt
-
-        #try:
-            #response = openai.ChatCompletion.create(
-                #model="gpt-4",  # Specify the model
-                #messages=[
-                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    #{"role": "user", "content"}
-                #]
-            #)
-            #answer = response.choices[0].message['content']
-        #except Exception as e:
-            #st.error(f"Error generating response: {e}")
-            #answer = "Ik kon helaas geen antwoord genereren."
-
-        #st.write(answer)
-
-       #completion = openai.ChatCompletion.create(
-            #model = "gpt-4",
-            #messages = [
-                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                    #{"role": "user", "content":""}
-            #],
-            #temperature = 0
-        #)
-
-        chat = ChatOpenAI(
-            model_name= "gpt-3.5-turbo-1106",
-            temperature = 0
-        )
-
+        chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106", temperature=0)
         chat(messages)
         chain = load_qa_chain(chat, chain_type="stuff")
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=(user_question))
-            print(cb)
         st.write(response)
 
 if __name__ == '__main__':

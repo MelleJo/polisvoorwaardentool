@@ -6,7 +6,49 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from hashlib import sha256
+import json
 import os
+import time
+
+def show_json(obj):
+    display(json.loads(obj.model_dump_json()))
+
+
+client = 
+
+thread = client.beta.threads.create()
+show_json(thread)
+
+message = client.beta.threads.messages.create(
+    thread_id=thread.id,
+    role="user",
+    content="test",
+)
+show_json(message)
+
+run = client.beta.threads.runs.create(
+    thread_id=thread.id,
+    assistant_id=assistant.id,
+)
+show_json(run)
+
+
+def wait_on_run(run, thread): 
+    while run.status == "queued" or run.status == "in_progress":
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id,
+        )
+        time.sleep(0.5)
+    return run
+
+run = wait_on_run(run, thread)
+show_json(run)
+
+messages = client.beta.threads.messages.list(thread_id=thread.id)
+show_json(messages)
+
+
 
 # Set OpenAI API key from Streamlit secrets
 api_key = st.secrets["OPENAI_API_KEY"]

@@ -89,6 +89,8 @@ def main():
     api_key = st.secrets["OPENAI_API_KEY"]
     os.environ["OPENAI_API_KEY"] = api_key
 
+    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+    
     pdf_dir = "preloaded_pdfs/"
     all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
 

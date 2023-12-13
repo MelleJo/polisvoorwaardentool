@@ -32,7 +32,49 @@ def categorize_pdfs(pdf_list):
         category = "Overige"
         if prefix == "Auto":
             category = "Autoverzekering"
-        # ... (Add additional categorization here)
+        elif prefix == "AVB":
+            category = "Bedrijfsaansprakelijkheidsverzekering"
+        elif prefix == "BestAVB":
+            category = "AVB Bestuurders"
+        elif prefix == "BS":
+            category = "Bedrijfsschadeverzekering"
+        elif prefix == "BestAuto":
+            category = "Bestelautoverzekering"
+        elif prefix == "Brand":
+            category = "Brandverzekeringen"
+        elif prefix == "Cara":
+            category = "Caravanverzekering"
+        elif prefix == "EigVerv":
+            category = "Eigen vervoer"
+        elif prefix == "Fiets":
+            category = "Fietsverzekering"
+        elif prefix == "Geb":
+            category = "Gebouwen"
+        elif prefix == "GW":
+            category = "Goed Werkgeverschap"
+        elif prefix == "IB":
+            category = "Inboedelverzekering"
+        elif prefix == "Inv":
+            category = "Inventaris"
+        elif prefix == "Mot":
+            category = "Motorverzekering"
+        elif prefix == "RB":
+            category = "Rechtsbijstandverzekering"
+        elif prefix == "Reis":
+            category = "Reisverzekering"
+        elif prefix == "Scoot":
+            category = "Scootmobielverzekering"
+        elif prefix == "WEGAS":
+            category = "WEGAS"
+        elif prefix == "WerkMat":
+            category = "Werk- en landbouwmaterieelverzekering"
+        elif prefix == "WEGAM":
+            category = "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)"
+        elif prefix == "Woon":
+            category = "Woonhuisverzekering"
+        else:
+            category = "Overige"
+       
         if category not in category_map:
             category_map[category] = []
         category_map[category].append(pdf)

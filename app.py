@@ -28,7 +28,7 @@ def start_or_get_thread():
     if 'thread_id' not in st.session_state:
         response = openai.Thread.create(assistant_id=assistant_id)
         st.session_state['thread_id'] = response['data']['id']
-        st.write(f"Thread created: {st.session_state['thread_id']}")
+        st.write(f"thread created: {st.session_state['thread_id']}")
     return st.session_state['thread_id']
 
 # Function to send a message to the OpenAI thread and get a response

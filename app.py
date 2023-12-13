@@ -130,8 +130,8 @@ def main():
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
     if user_question:
-    # Perform document similarity search
-    docs = knowledge_base.similarity_search(user_question)
+        # Perform document similarity search
+        docs = knowledge_base.similarity_search(user_question)
 
     # Check if documents are found and extract text from the first document
     if docs and len(docs) > 0:

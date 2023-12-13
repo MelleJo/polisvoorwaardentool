@@ -86,6 +86,9 @@ def categorize_pdfs(pdf_list):
 def main():
     st.header("VA-Polisvoorwaardentool")
 
+    chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106", temperature=0)
+    chain = prompt_template | chat
+
     api_key = st.secrets["OPENAI_API_KEY"]
     os.environ["OPENAI_API_KEY"] = api_key
 

@@ -26,7 +26,7 @@ if sha256(password_input.encode()).hexdigest() != hashed_password:
 # Function to start or get a thread
 def start_or_get_thread():
     if 'thread_id' not in st.session_state:
-        response = openai.thread.create(assistant_id=assistant_id)
+        response = openai.beta.thread.create(assistant_id=assistant_id)
         st.session_state['thread_id'] = response['data']['id']
         st.write(f"thread created: {st.session_state['thread_id']}")
     return st.session_state['thread_id']
@@ -128,4 +128,4 @@ def main():
         st.write(assistant_response)
 
 if __name__ == '__main__':
-    main()
+   main()

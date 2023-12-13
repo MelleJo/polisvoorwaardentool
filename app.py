@@ -11,6 +11,8 @@ from langchain.schema import HumanMessage, SystemMessage
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
 
+prompt_template = ChatPromptTemplate.from_template("Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}")
+
 # Set page config
 st.set_page_config(page_title="VA-Polisvoorwaardentool")
 
@@ -124,20 +126,24 @@ def main():
             knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
     knowledge_base = knowledge_bases[selected_pdf_path]
-    custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO"
+    custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}") 
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        messages = [system_message_template.format(), HumanMessage(content=user_question)]
-        docs = knowledge_base.similarity_search(user_question)  # Zoek het meest relevante deel van het document
+        # Perform document similarity search
+        docs = knowledge_base.similarity_search(user_question)
+    
+        # Use only the most relevant document content
+        relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
+    
+        # Combine the relevant document content with the user question
+        combined_input = {"user_question": relevant_doc_content + "\n\n" + user_question}
+    
+        # Invoke the chain with the combined input
+        response = chain.invoke(combined_input)
+        st.write(response.content)
 
-        chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106", temperature=0)
-        chat(messages)
-        chain = load_qa_chain(chat, chain_type="stuff")
-        with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=(user_question))
-        st.write(response)
 
 if __name__ == '__main__':
     main()

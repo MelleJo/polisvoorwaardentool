@@ -14,7 +14,7 @@ def show_json(obj):
     display(json.loads(obj.model_dump_json()))
 
 
-client = 
+client = OpenAI()
 
 thread = client.beta.threads.create()
 show_json(thread)

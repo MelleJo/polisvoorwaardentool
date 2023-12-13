@@ -11,7 +11,13 @@ from langchain.schema import HumanMessage, SystemMessage
 from langchain.callbacks import get_openai_callback
 from hashlib import sha256
 
-prompt_template = ChatPromptTemplate.from_template("Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}")
+prompt_template = ChatPromptTemplate.from_template(
+    "Je bent een expert in het interpreteren van verzekeringsdocumenten. "
+    "Bij het beantwoorden van vragen, gebruik de informatie uit de polisvoorwaarden. "
+    "Geef specifieke pagina- en paragraafnummers voor bronvermelding waar mogelijk. "
+    "Vraag: {user_question}"
+)
+
 
 # Set page config
 st.set_page_config(page_title="VA-Polisvoorwaardentool")

@@ -1,167 +1,37 @@
-import openai
+import os
 import streamlit as st
-import uuid
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
+from langchain.chains.question_answering import load_qa_chain
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
+from langchain.schema import HumanMessage, SystemMessage
+from langchain.prompts import PromptTemplate
+#from openai import OpenAI
+from langchain.callbacks import get_openai_callback
+#from langchain.memory import ConversationBufferMemory
 from hashlib import sha256
-import json
-import os
-import time
 
-from openai import OpenAI
-
-from openai import OpenAI
-
-MATH_ASSISTANT_ID = "asst_nTomiepwKMy6Inrv1Wv3BA5Q"  # or a hard-coded ID like "asst-..."
-
-client = OpenAI()
-
-def submit_message(assistant_id, thread, user_message):
-    client.beta.threads.messages.create(
-        thread_id=thread.id, role="user", content=user_message
-    )
-    return client.beta.threads.runs.create(
-        thread_id=thread.id,
-        assistant_id=assistant_id,
-    )
-
-
-def get_response(thread):
-    return client.beta.threads.messages.list(thread_id=thread.id, order="asc")
-
-def create_thread_and_run(user_input):
-    thread = client.beta.threads.create()
-    run = submit_message(MATH_ASSISTANT_ID, thread, user_input)
-    return thread, run
-
-
-# Emulating concurrent user requests
-thread1, run1 = create_thread_and_run(
-    "I need to solve the equation `3x + 11 = 14`. Can you help me?"
-)
-thread2, run2 = create_thread_and_run("Could you explain linear algebra to me?")
-thread3, run3 = create_thread_and_run("I don't like math. What can I do?")
-
-# Now all Runs are executing...
-
-import time
-
-# Pretty printing helper
-def pretty_print(messages):
-    print("# Messages")
-    for m in messages:
-        print(f"{m.role}: {m.content[0].text.value}")
-    print()
-
-
-# Waiting in a loop
-def wait_on_run(run, thread):
-    while run.status == "queued" or run.status == "in_progress":
-        run = client.beta.threads.runs.retrieve(
-            thread_id=thread.id,
-            run_id=run.id,
-        )
-        time.sleep(0.5)
-    return run
-
-
-# Wait for Run 1
-run1 = wait_on_run(run1, thread1)
-pretty_print(get_response(thread1))
-
-# Wait for Run 2
-run2 = wait_on_run(run2, thread2)
-pretty_print(get_response(thread2))
-
-# Wait for Run 3
-run3 = wait_on_run(run3, thread3)
-pretty_print(get_response(thread3))
-
-# Thank our assistant on Thread 3 :)
-run4 = submit_message(MATH_ASSISTANT_ID, thread3, "Thank you!")
-run4 = wait_on_run(run4, thread3)
-pretty_print(get_response(thread3))
-
-
-
-
-def show_json(obj):
-    display(json.loads(obj.model_dump_json()))
-
-
-client = OpenAI()
-
-thread = client.beta.threads.create()
-show_json(thread)
-
-message = client.beta.threads.messages.create(
-    thread_id=thread.id,
-    role="user",
-    content="test",
-)
-show_json(message)
-
-run = client.beta.threads.runs.create(
-    thread_id=thread.id,
-    assistant_id=assistant.id,
-)
-show_json(run)
-
-
-def wait_on_run(run, thread): 
-    while run.status == "queued" or run.status == "in_progress":
-        run = client.beta.threads.runs.retrieve(
-            thread_id=thread.id,
-            run_id=run.id,
-        )
-        time.sleep(0.5)
-    return run
-
-run = wait_on_run(run, thread)
-show_json(run)
-
-messages = client.beta.threads.messages.list(thread_id=thread.id)
-show_json(messages)
-
-
-
-# Set OpenAI API key from Streamlit secrets
-api_key = st.secrets["OPENAI_API_KEY"]
-os.environ["OPENAI_API_KEY"] = api_key
-assistant_id = st.secrets["openai_assistant_id"]
-
-# Set Streamlit page config
+# Set page config
 st.set_page_config(page_title="VA-Polisvoorwaardentool")
 
 # Check password
 hashed_password = st.secrets["hashed_password"]
 password_input = st.text_input("Wachtwoord:", type="password")
+
 if sha256(password_input.encode()).hexdigest() != hashed_password:
     st.error("Voer het juiste wachtwoord in.")
     st.stop()
 
-# Function to start or get a thread
-def start_or_get_thread():
-    if 'thread_id' not in st.session_state:
-        response = openai.beta.thread.create(assistant_id=assistant_id)
-        st.session_state['thread_id'] = response['data']['id']
-        st.write(f"thread created: {st.session_state['thread_id']}")
-    return st.session_state['thread_id']
+# Global variable to cache embeddings to reduce repeated API calls
+knowledge_bases = {}
 
-# Function to send a message to the OpenAI thread and get a response
-def send_message_get_response(thread_id, user_message):
-    response = openai.message.create(
-        model="gpt-3.5-turbo-1106",
-        messages=[{"role": "user", "content": user_message}],
-        assistant_id=assistant_id,
-        thread_id=thread_id
-    )
-    st.write(f"API Response: {response}")
-    return response['data']['content']
-
-# Function to categorize PDFs
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
@@ -217,13 +87,34 @@ def categorize_pdfs(pdf_list):
 
     return category_map
 
-# Main function
+#def create_custom_prompt(user_question):
+    #custom_prompt = #(
+        #f"Dit document is een polisvoorwaardenblad. "
+        #f"De volgende vraag moet worden beantwoord door directe informatie uit dit document te gebruiken. "
+        #f"Bij het zoeken naar een antwoord, houd rekening met de volgende punten:\n"
+        #f"- Controleer of de vraag betrekking heeft op algemene voorwaarden, uitzonderingen, specifieke clausules, of dekkingslimieten.\n"
+        #f"- Zoek naar definities of specifieke termen die relevant zijn voor de vraag. Verzekeringsdocumenten gebruiken vaak specifiek gedefinieerde termen.\n"
+        #f"- Let op de context waarin termen worden gebruikt. Een term kan verschillende betekenissen hebben afhankelijk van de sectie waarin deze voorkomt.\n"
+        #f"- Als de vraag betrekking heeft op dekking, controleer dan zowel de secties over inbegrepen dekking als uitsluitingen.\n"
+        #f"- Geef een duidelijk antwoord ('Ja, het is gedekt', 'Nee, het is niet gedekt', of 'Niet van toepassing') alleen als je expliciet bewijs in het document vindt. "
+        #f"Leg uit waarom dit zo is, bijvoorbeeld 'Ja, het is gedekt, omdat in sectie 4, pagina 12, staat dat...'.\n"
+        #f"- Als het antwoord niet duidelijk in het document staat, of als het onderwerp wordt genoemd in een context die geen definitief antwoord geeft, geef dan aan met 'Antwoord niet expliciet gevonden in het document'.\n"
+        #f"- Vermijd het maken van aannames of het trekken van conclusies op basis van gerelateerde onderwerpen of algemene kennis.\n"
+        #f"- Geef indien mogelijk de specifieke sectie of pagina van het document aan waar het relevante antwoord gevonden kan worden.\n\n"
+        #f"Vraag: {user_question}\n"
+        #f"Antwoord:")#
+    #return custom_prompt
+
+
 def main():
     st.header("VA-Polisvoorwaardentool")
 
-    # Load PDF files
+    api_key = st.secrets["OPENAI_API_KEY"]
+    os.environ["OPENAI_API_KEY"] = api_key
+
     pdf_dir = "preloaded_pdfs/"
     all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
+
     category_map = categorize_pdfs(all_pdfs)
 
     categories = list(category_map.keys())
@@ -232,19 +123,95 @@ def main():
         return
 
     selected_category = st.selectbox("Kies een categorie:", categories)
+
     available_pdfs = category_map[selected_category]
     pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]
     selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
+
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
-    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
 
-    if selected_pdf_path and user_question:
+    if selected_pdf_path:
         with open(selected_pdf_path, "rb") as file:
-            st.download_button(label="Download polisvoorwaarden", data=file, file_name=selected_pdf_name, mime="application/pdf")
+            st.download_button(
+                label="Download polisvoorwaarden",
+                data=file,
+                file_name=selected_pdf_name,
+                mime="application/pdf"
+            )
 
-        thread_id = start_or_get_thread()
-        assistant_response = send_message_get_response(thread_id, user_question)
-        st.write(assistant_response)
+    if selected_pdf_path not in knowledge_bases:
+        with open(selected_pdf_path, "rb") as f:
+            pdf_reader = PdfReader(f)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            text_splitter = CharacterTextSplitter(
+                separator="\n",
+                chunk_size=1000,
+                chunk_overlap=200,
+                length_function=len
+            )
+            chunks = text_splitter.split_text(text)
+            embeddings = OpenAIEmbeddings()
+            knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
+
+    knowledge_base = knowledge_bases[selected_pdf_path]
+
+    custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO"
+    system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
+
+    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+    if user_question:
+        messages = [
+            system_message_template.format(),
+            HumanMessage(content=user_question)
+        ]
+
+        # prompt = PromptTemplate.from_template("Beantwoord de volgende vraag:{vraag})
+        # prompt.format(vraag="user_question")
+        docs = knowledge_base.similarity_search(user_question)  # Zoek het meest relevante deel van het document
+
+
+        # Gebruik alleen het meest relevante deel van het document
+        # relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
+
+        # combined_input = relevant_doc_content + "\n\n" + custom_prompt
+
+        #try:
+            #response = openai.ChatCompletion.create(
+                #model="gpt-4",  # Specify the model
+                #messages=[
+                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    #{"role": "user", "content"}
+                #]
+            #)
+            #answer = response.choices[0].message['content']
+        #except Exception as e:
+            #st.error(f"Error generating response: {e}")
+            #answer = "Ik kon helaas geen antwoord genereren."
+
+        #st.write(answer)
+
+       #completion = openai.ChatCompletion.create(
+            #model = "gpt-4",
+            #messages = [
+                    #{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
+                    #{"role": "user", "content":""}
+            #],
+            #temperature = 0
+        #)
+
+        chat = ChatOpenAI(
+            model_name= "gpt-3.5-turbo-1106",
+            temperature = 0
+        )
+
+        chat(messages)
+        chain = load_qa_chain(chat, chain_type="stuff")
+        with get_openai_callback() as cb:
+            response = chain.run(input_documents=docs, question=(user_question))
+            print(cb)
+        st.write(response)
 
 if __name__ == '__main__':
-   main()
+    main()

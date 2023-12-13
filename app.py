@@ -129,20 +129,28 @@ def main():
     custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}" 
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
-    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        # Perform document similarity search
-        docs = knowledge_base.similarity_search(user_question)
-    
-        # Use only the most relevant document content
-        relevant_doc_content = docs[0]['text'] if docs else "Geen relevante inhoud gevonden in het document."
-    
-        # Combine the relevant document content with the user question
-        combined_input = {"user_question": relevant_doc_content + "\n\n" + user_question}
-    
-        # Invoke the chain with the combined input
-        response = chain.invoke(combined_input)
-        st.write(response.content)
+    # Perform document similarity search
+    docs = knowledge_base.similarity_search(user_question)
+
+    # Check if documents are found and extract text from the first document
+    if docs and len(docs) > 0:
+        # Assuming the first document is the most relevant one
+        most_relevant_doc = docs[0]
+
+        # Extracting text based on your original implementation structure
+        # Update this part based on how the 'Document' object stores text in your original code
+        relevant_doc_content = getattr(most_relevant_doc, 'text', "Geen relevante inhoud gevonden in het document.")
+    else:
+        relevant_doc_content = "Geen relevante inhoud gevonden in het document."
+
+    # Combine the relevant document content with the user question
+    combined_input = {"user_question": relevant_doc_content + "\n\n" + user_question}
+
+    # Invoke the chain with the combined input
+    response = chain.invoke(combined_input)
+    st.write(response.content)
+
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
+from langchain.callbacks import get_openai_callback
 from hashlib import sha256
 
 # Set page config

@@ -1,83 +1,48 @@
-import os
 import openai
 import streamlit as st
 import uuid
-import requests
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from hashlib import sha256
+import os
 
-# Define Assistant ID and API Key
-assistant_id = st.secrets["openai_assistant_id"]
+# Set OpenAI API key from Streamlit secrets
 api_key = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_KEY"] = api_key
+assistant_id = st.secrets["openai_assistant_id"]
 
-# Set page config
+# Set Streamlit page config
 st.set_page_config(page_title="VA-Polisvoorwaardentool")
 
 # Check password
 hashed_password = st.secrets["hashed_password"]
 password_input = st.text_input("Wachtwoord:", type="password")
-
 if sha256(password_input.encode()).hexdigest() != hashed_password:
     st.error("Voer het juiste wachtwoord in.")
     st.stop()
 
-# Global variable to cache embeddings to reduce repeated API calls
-knowledge_bases = {}
+# Function to start or get a thread
+def start_or_get_thread():
+    if 'thread_id' not in st.session_state:
+        response = openai.Thread.create(assistant_id=assistant_id)
+        st.session_state['thread_id'] = response['data']['id']
+        st.write(f"Thread created: {st.session_state['thread_id']}")
+    return st.session_state['thread_id']
 
-def submit_message(assistant_id, thread_id, user_message):
+# Function to send a message to the OpenAI thread and get a response
+def send_message_get_response(thread_id, user_message):
     response = openai.Message.create(
         model="gpt-3.5-turbo-1106",
-        messages=[{"role": "system", "content": "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden."},
-                  {"role": "user", "content": user_message}],
+        messages=[{"role": "user", "content": user_message}],
         assistant_id=assistant_id,
         thread_id=thread_id
     )
-    return response
+    st.write(f"API Response: {response}")
+    return response['data']['content']
 
-def get_response(thread_id):
-    response = openai.Thread.retrieve(thread_id=thread_id)
-    return response
-
-def send_message_to_thread(thread_id, user_message, api_key):
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
-    }
-    payload = {
-        "messages": [
-            {"role": "user", "content": user_message}
-        ]
-    }
-    response = requests.post(f'https://api.openai.com/v1/threads/{thread_id}/messages', json=payload, headers=headers)
-    print(f"Send Message Response: {response.json()}")
-    return response.json() if response.status_code == 200 else None
-
-def start_run(thread_id, assistant_id, api_key):
-    url = f"https://api.openai.com/v1/threads/{thread_id}/runs"
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json'
-    }
-    data = {
-        'assistant_id': assistant_id
-    }
-    response = requests.post(url, headers=headers, json=data)
-    print(f"Start Run Response Status: {response.status_code}, Content: {response.content}")
-    return response.json() if response.status_code == 200 else None
-
-def get_run_responses(thread_id, api_key):
-    url = f"https://api.openai.com/v1/threads/{thread_id}/messages"
-    headers = {
-        'Authorization': f'Bearer {api_key}'
-    }
-    response = requests.get(url, headers=headers)
-    print(f"Get Run Responses Status: {response.status_code}, Content: {response.content}")
-    return response.json() if response.status_code == 200 else None
-
+# Function to categorize PDFs
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
@@ -133,30 +98,13 @@ def categorize_pdfs(pdf_list):
 
     return category_map
 
+# Main function
 def main():
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}',
-        'OpenAI-Beta': 'assistants=v1'
-    }
-
-    response = requests.post('https://api.openai.com/v1/threads', headers=headers)
-    if response.status_code == 200:
-        thread = response.json()
-    else:
-        st.error("Failed to create a thread")
-        return
-
-    if 'session_id' not in st.session_state:
-        st.session_state['session_id'] = str(uuid.uuid4())
-
-    thread_id = thread.get('id')
-
     st.header("VA-Polisvoorwaardentool")
 
+    # Load PDF files
     pdf_dir = "preloaded_pdfs/"
     all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
-
     category_map = categorize_pdfs(all_pdfs)
 
     categories = list(category_map.keys())
@@ -168,44 +116,16 @@ def main():
     available_pdfs = category_map[selected_category]
     pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]
     selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
-
     selected_pdf_path = available_pdfs[pdf_names.index(selected_pdf_name)]
-
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+
     if selected_pdf_path and user_question:
         with open(selected_pdf_path, "rb") as file:
-            st.download_button(
-                label="Download polisvoorwaarden",
-                data=file,
-                file_name=selected_pdf_name,
-                mime="application/pdf"
-            )
+            st.download_button(label="Download polisvoorwaarden", data=file, file_name=selected_pdf_name, mime="application/pdf")
 
-        if selected_pdf_path not in knowledge_bases:
-            with open(selected_pdf_path, "rb") as f:
-                pdf_reader = PdfReader(f)
-                text = ""
-                for page in pdf_reader.pages:
-                    text += page.extract_text()
-                text_splitter = CharacterTextSplitter(
-                    separator="\n",
-                    chunk_size=1000,
-                    chunk_overlap=200,
-                    length_function=len
-                )
-                chunks = text_splitter.split_text(text)
-                embeddings = OpenAIEmbeddings()
-                knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
-
-        send_message_to_thread(thread_id, user_question, api_key)
-
-        run_response = start_run(thread_id, assistant_id, api_key)
-        if run_response:
-            answers = get_run_responses(thread_id, api_key)
-            if answers:
-                for message in answers['data']:
-                    if message['role'] == 'assistant':
-                        st.write(message['content'][0]['text']['value'])
+        thread_id = start_or_get_thread()
+        assistant_response = send_message_get_response(thread_id, user_question)
+        st.write(assistant_response)
 
 if __name__ == '__main__':
     main()

@@ -89,8 +89,7 @@ def main():
     api_key = st.secrets["OPENAI_API_KEY"]
     os.environ["OPENAI_API_KEY"] = api_key
 
-    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
-    
+     
     pdf_dir = "preloaded_pdfs/"
     all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
 
@@ -131,6 +130,8 @@ def main():
     custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}" 
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
+    user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+    
     if user_question:
         # Perform document similarity search
         docs = knowledge_base.similarity_search(user_question)

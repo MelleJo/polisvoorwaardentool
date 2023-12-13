@@ -1,7 +1,6 @@
 from openai import OpenAI
 
-assistant.id = asst_nTomiepwKMy6Inrv1Wv3BA5Q
-MATH_ASSISTANT_ID = assistant.id
+MATH_ASSISTANT_ID = "asst_nTomiepwKMy6Inrv1Wv3BA5Q"  # or a hard-coded ID like "asst-..."
 
 client = OpenAI()
 
@@ -30,6 +29,8 @@ thread1, run1 = create_thread_and_run(
 )
 thread2, run2 = create_thread_and_run("Could you explain linear algebra to me?")
 thread3, run3 = create_thread_and_run("I don't like math. What can I do?")
+
+# Now all Runs are executing...
 
 import time
 
@@ -68,4 +69,6 @@ pretty_print(get_response(thread3))
 run4 = submit_message(MATH_ASSISTANT_ID, thread3, "Thank you!")
 run4 = wait_on_run(run4, thread3)
 pretty_print(get_response(thread3))
+
+
 

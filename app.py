@@ -131,7 +131,7 @@ def main():
             text = ""
             for page in pdf_reader.pages:
                 text += page.extract_text()
-            text_splitter = CharacterTextSplitter(separator="\n", chunk_size=2000, chunk_overlap=200, length_function=len)
+            text_splitter = CharacterTextSplitter(separator="\n", chunk_size=4000, chunk_overlap=1000, length_function=len)
             chunks = text_splitter.split_text(text)
             embeddings = OpenAIEmbeddings()
             knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)

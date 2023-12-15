@@ -136,7 +136,7 @@ def main():
             knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
     knowledge_base = knowledge_bases[selected_pdf_path]
-    # custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}" 
+    custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}" 
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")

@@ -140,6 +140,7 @@ def main():
     system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
+    docs = None
     
     if user_question:
         # Perform document similarity search

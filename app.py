@@ -14,6 +14,7 @@ from hashlib import sha256
 prompt_template = ChatPromptTemplate.from_template(
     "Je bent een expert in het interpreteren van verzekeringsdocumenten. "
     "Bij het beantwoorden van vragen, gebruik de informatie uit de polisvoorwaarden. "
+    "De gebruiker is een schadebehandelaar, geef altijd zo nuttig mogelijk antwoord. Wordt er bijvoorbeeld naar een maximale vergoeding gevraagd? Geef dan enkel het bedrag en waar het staat."
     "Geef een zo duidelijk mogelijke notie van waar je de informatie vandaan hebt in de tekst."
     "Vraag: {user_question}"
 )

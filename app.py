@@ -165,6 +165,9 @@ def main():
     response = chain.invoke(combined_input)
     st.write(response.content)
 
+    with get_openai_callback() as cb:
+        print(cb)
+
 
 
 if __name__ == '__main__':

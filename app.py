@@ -93,7 +93,7 @@ def categorize_pdfs(pdf_list):
 def main():
     st.header("VA-Polisvoorwaardentool")
 
-    chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106", temperature=0.2)
+    chat = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2)
     chain = prompt_template | chat
 
     api_key = st.secrets["OPENAI_API_KEY"]
@@ -164,13 +164,7 @@ def main():
     # Invoke the chain with the combined input
     response = chain.invoke(combined_input)
     st.write(response.content)
-
     
-    with get_openai_callback() as cb:
-        result = chat(user_question)
-        print(cb)
-
-
 
 if __name__ == '__main__':
     main()

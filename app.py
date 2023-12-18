@@ -15,7 +15,7 @@ prompt_template = ChatPromptTemplate.from_template(
     "Je bent een expert in het interpreteren van verzekeringsdocumenten. "
     "Bij het beantwoorden van vragen, gebruik de informatie uit de polisvoorwaarden. "
     "De gebruiker is een schadebehandelaar, geef altijd zo nuttig mogelijk antwoord. Wordt er bijvoorbeeld naar een maximale vergoeding gevraagd? Geef dan enkel het bedrag en waar het staat."
-    "Geef een zo duidelijk mogelijke notie van waar je de informatie vandaan hebt in de tekst."
+    "Geef een accurate beschrijving van waar de gebruiker de informatie/context die jij hebt gebruikt kan vinden. Zorg ervoor dat je niet liegt of hallucineert over waar dit staat."
     "Vraag: {user_question}"
 )
 
@@ -137,8 +137,8 @@ def main():
             knowledge_bases[selected_pdf_path] = FAISS.from_texts(chunks, embeddings)
 
     knowledge_base = knowledge_bases[selected_pdf_path]
-    custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}" 
-    system_message_template = SystemMessagePromptTemplate.from_template(custom_system_prompt)
+    #custom_system_prompt = "Jij bent een expert in schadebehandelingen en het begrijpen en analyseren van polisvoorwaarden. Geef een duidelijke bronvermelding van pagina's, hoofdstukken of paragrafen. Start elke zin met HALLO. Beantwoord de vraag: {user_question}" 
+    system_message_template = SystemMessagePromptTemplate.from_template(prompt_template)
 
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     docs = None

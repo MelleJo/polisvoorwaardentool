@@ -15,7 +15,7 @@ from langchain.schema import HumanMessage, SystemMessage
 from langchain.callbacks import get_openai_callback
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from langchain.chains import SimpleQAChain
+from langchain.chains.question_answering import load_qa_chain
 
 # Security
 from hashlib import sha256
@@ -74,13 +74,14 @@ def categorize_pdfs(pdf_list):
 
 
 def load_qa_chain(llm, chain_type="map_reduce"):
+    # Setup for a QA Chain, adjust as needed
     if chain_type == "map_reduce":
-        # Setup for a MapReduce QA Chain, adjust as needed
-        qa_chain = SimpleQAChain(llm)
+        qa_chain = AnalyzeDocumentChain(llm)  # Assuming this is a valid initialization
         return qa_chain
     else:
         # Add other chain types if necessary
         raise ValueError(f"Unsupported chain type: {chain_type}")
+
 
 
 # Main function where the app logic resides

@@ -1,99 +1,89 @@
 import os
 import streamlit as st
+
+# PDF handling
 from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
+
+# LangChain specific imports
+from langchain.chains import AnalyzeDocumentChain
+from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.chains.question_answering import load_qa_chain
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts.chat import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.prompts.chat import ChatPromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.callbacks import get_openai_callback
-from hashlib import sha256
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain.chains import SimpleQAChain
 
+# Security
+from hashlib import sha256
 
+# Web app setup
 
-
-# webapp setup
-
-# titel enzovoorts
+# Set page title and other Streamlit configurations
 st.set_page_config(page_title="VA-Polisvoorwaardentool")
 
-# wachtwoord
+# Password protection
 hashed_password = st.secrets["hashed_password"]
 password_input = st.text_input("Wachtwoord:", type="password")
 
-# wachtwoord check
+# Password verification
 if sha256(password_input.encode()).hexdigest() != hashed_password:
     st.error("Voer het juiste wachtwoord in.")
     st.stop()
 
-
-
 # Global variable to cache embeddings to reduce repeated API calls
 knowledge_bases = {}
 
-# pdf categorieen
-
+# Function to categorize PDFs based on their filename
+# Function to categorize PDFs based on their filename
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
         prefix = os.path.basename(pdf).split('_')[0]
-        category = "Overige"
-        if prefix == "Auto":
-            category = "Autoverzekering"
-        elif prefix == "AVB":
-            category = "Bedrijfsaansprakelijkheidsverzekering"
-        elif prefix == "BestAVB":
-            category = "AVB Bestuurders"
-        elif prefix == "BS":
-            category = "Bedrijfsschadeverzekering"
-        elif prefix == "BestAuto":
-            category = "Bestelautoverzekering"
-        elif prefix == "Brand":
-            category = "Brandverzekeringen"
-        elif prefix == "Cara":
-            category = "Caravanverzekering"
-        elif prefix == "EigVerv":
-            category = "Eigen vervoer"
-        elif prefix == "Fiets":
-            category = "Fietsverzekering"
-        elif prefix == "Geb":
-            category = "Gebouwen"
-        elif prefix == "GW":
-            category = "Goed Werkgeverschap"
-        elif prefix == "IB":
-            category = "Inboedelverzekering"
-        elif prefix == "Inv":
-            category = "Inventaris"
-        elif prefix == "Mot":
-            category = "Motorverzekering"
-        elif prefix == "RB":
-            category = "Rechtsbijstandverzekering"
-        elif prefix == "Reis":
-            category = "Reisverzekering"
-        elif prefix == "Scoot":
-            category = "Scootmobielverzekering"
-        elif prefix == "WEGAS":
-            category = "WEGAS"
-        elif prefix == "WerkMat":
-            category = "Werk- en landbouwmaterieelverzekering"
-        elif prefix == "WEGAM":
-            category = "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)"
-        elif prefix == "Woon":
-            category = "Woonhuisverzekering"
-        else:
-            category = "Overige"
-       
-        if category not in category_map:
-            category_map[category] = []
-        category_map[category].append(pdf)
+        category = {
+            "Auto": "Autoverzekering",
+            "AVB": "Bedrijfsaansprakelijkheidsverzekering",
+            "BestAVB": "AVB Bestuurders",
+            "BS": "Bedrijfsschadeverzekering",
+            "BestAuto": "Bestelautoverzekering",
+            "Brand": "Brandverzekeringen",
+            "Cara": "Caravanverzekering",
+            "EigVerv": "Eigen vervoer",
+            "Fiets": "Fietsverzekering",
+            "Geb": "Gebouwen",
+            "GW": "Goed Werkgeverschap",
+            "IB": "Inboedelverzekering",
+            "Inv": "Inventaris",
+            "Mot": "Motorverzekering",
+            "RB": "Rechtsbijstandverzekering",
+            "Reis": "Reisverzekering",
+            "Scoot": "Scootmobielverzekering",
+            "WEGAS": "WEGAS",
+            "WerkMat": "Werk- en landbouwmaterieelverzekering",
+            "WEGAM": "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)",
+            "Woon": "Woonhuisverzekering"
+        }.get(prefix, "Overige")
+
+        category_map.setdefault(category, []).append(pdf)
 
     return category_map
 
 
+
+def load_qa_chain(llm, chain_type="map_reduce"):
+    if chain_type == "map_reduce":
+        # Setup for a MapReduce QA Chain, adjust as needed
+        qa_chain = SimpleQAChain(llm)
+        return qa_chain
+    else:
+        # Add other chain types if necessary
+        raise ValueError(f"Unsupported chain type: {chain_type}")
+
+
+# Main function where the app logic resides
 def main():
     st.header("VA-Polisvoorwaardentool")
 
@@ -113,49 +103,33 @@ def main():
     pdf_names = [os.path.basename(pdf) for pdf in available_pdfs]
     selected_pdf_name = st.selectbox("Welke polisvoorwaarden wil je raadplegen?", pdf_names)
 
-    # Get the full path of the selected PDF
+    # Process the selected PDF
     selected_pdf_index = pdf_names.index(selected_pdf_name)
     selected_pdf_path = available_pdfs[selected_pdf_index]
+    pdf_text = process_pdf(selected_pdf_path)
 
-    # Process the selected PDF
-    with open(selected_pdf_path, "rb") as f:
-        pdf_reader = PdfReader(f)
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text() or ""
-        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=4000, chunk_overlap=1000, length_function=len)
-        chunks = text_splitter.split_text(text)
-
-    # Load embeddings and vector store for the selected PDF
-    embeddings = OpenAIEmbeddings()
-    knowledge_base = FAISS.from_texts(chunks, embeddings)
-
-    # Define the chat model and prompt template
-    custom_prompt = ChatPromptTemplate.from_template(
-        "Je bent een expert in het interpreteren van verzekeringsdocumenten. "
-        "Bij het beantwoorden van vragen, gebruik de informatie uit de polisvoorwaarden. "
-        "De gebruiker is een schadebehandelaar, geef altijd zo nuttig mogelijk antwoord. "
-        "Vraag: {user_question}"
-    )
-    chat_model = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2)
+    # Set up LangChain components
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2)
+    qa_chain = load_qa_chain(llm, chain_type="map_reduce")
+    qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
     # Get user input and generate response
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        docs = knowledge_base.similarity_search(user_question)
-        relevant_doc_content = "Geen relevante inhoud gevonden in het document."
-        if docs and len(docs) > 0:
-            most_relevant_doc = docs[0]
-            relevant_doc_content = getattr(most_relevant_doc, 'text', relevant_doc_content)
-
-        chain = (
-            {"user_question": relevant_doc_content + "\n\n" + user_question}
-            | custom_prompt
-            | chat_model
-            | StrOutputParser()
+        response = qa_document_chain.run(
+            input_document=pdf_text,
+            question=user_question
         )
-        response = chain.invoke()
         st.write(response)
 
+# Helper function to process the selected PDF
+def process_pdf(pdf_path):
+    with open(pdf_path, "rb") as f:
+        pdf_reader = PdfReader(f)
+        text = "".join(page.extract_text() or "" for page in pdf_reader.pages)
+    return text
+
+# Execute the main function when the script is run
 if __name__ == '__main__':
     main()
+

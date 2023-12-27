@@ -50,7 +50,7 @@ def categorize_pdfs(pdf_list):
 # Function to load and index a document
 def load_and_index_document(document_path):
     with st.spinner("Loading and indexing the document..."):
-        loader = PDFReader()
+        loader = PdfReader()
         documents = loader.load_data(file=Path(document_path))
         doc = Document(content=documents[0].content)
         service_context = ServiceContext.from_defaults(

@@ -65,8 +65,12 @@ if not os.path.exists(pdf_dir):
     st.warning("PDF directory does not exist.")
     st.stop()
 
-# Retrieve all PDFs from the directory
-all_pdfs = [os.path.join(pdf_dir, f) for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
+# Retrieve all PDFs from the directory and its subdirectories
+all_pdfs = []
+for root, dirs, files in os.walk(pdf_dir):
+    for file in files:
+        if file.endswith('.pdf'):
+            all_pdfs.append(os.path.join(root, file))
 
 if not all_pdfs:
     st.warning("No PDFs found in the directory.")

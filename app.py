@@ -82,6 +82,11 @@ def load_qa_chain(llm, chain_type="map_reduce"):
         # Add other chain types if necessary
         raise ValueError(f"Unsupported chain type: {chain_type}")
 
+def process_pdf(pdf_path):
+        with open(pdf_path, "rb") as f:
+            pdf_reader = PdfReader(f)
+            text = "".join(page.extract_text() or "" for page in pdf_reader.pages)
+        return text
 
 
 # Main function where the app logic resides
@@ -124,11 +129,7 @@ def main():
         st.write(response)
 
     # Helper function to process the selected PDF
-    def process_pdf(pdf_path):
-        with open(pdf_path, "rb") as f:
-            pdf_reader = PdfReader(f)
-            text = "".join(page.extract_text() or "" for page in pdf_reader.pages)
-        return text
+    
 
 # Execute the main function when the script is run
 if __name__ == '__main__':

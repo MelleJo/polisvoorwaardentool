@@ -72,16 +72,6 @@ def categorize_pdfs(pdf_list):
     return category_map
 
 
-
-def load_qa_chain(llm, chain_type="map_reduce"):
-    # Setup for a QA Chain, adjust as needed
-    if chain_type == "map_reduce":
-        qa_chain = AnalyzeDocumentChain(llm)  # Assuming this is a valid initialization
-        return qa_chain
-    else:
-        # Add other chain types if necessary
-        raise ValueError(f"Unsupported chain type: {chain_type}")
-
 def process_pdf(pdf_path):
         with open(pdf_path, "rb") as f:
             pdf_reader = PdfReader(f)

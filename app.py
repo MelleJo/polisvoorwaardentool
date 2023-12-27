@@ -103,9 +103,13 @@ if prompt := st.text_input("Your question"):
 
 for message in st.session_state.messages:
     with st.container():
-        st.write(message["content"], key=message["role"])
+        st.write(message["content"])  # Removed the 'key' argument
 
 # Generate and display response
 if st.session_state.messages and st.session_state.messages[-1]["role"] != "assistant":
+    # Ensure chat_engine is not None before calling chat
+    if st.session_state.get('chat_engine'):
         response = st.session_state.chat_engine.chat(st.session_state.messages[-1]["content"])
         st.session_state.messages.append({"role": "assistant", "content": response.response})
+    else:
+        st.error("Chat engine not initialized. Please select a document first.")

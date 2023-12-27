@@ -105,7 +105,7 @@ def main():
     pdf_text = process_pdf(selected_pdf_path)
 
     # Set up LangChain components
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-16k-0613", temperature=0)
     qa_chain = load_qa_chain(llm, chain_type="map_reduce")
     qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 

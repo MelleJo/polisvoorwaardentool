@@ -85,6 +85,9 @@ if not all_pdfs:
     st.warning("No PDFs found in the directory.")
     st.stop()
 
+# Categorize the PDFs - ensure this is called before using category_map
+category_map = categorize_pdfs(all_pdfs)
+
 # Category and Document Selection
 category = st.selectbox("Choose a category", list(category_map.keys()))
 document_name = st.selectbox("Choose a document", category_map[category])

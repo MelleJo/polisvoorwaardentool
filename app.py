@@ -1,66 +1,65 @@
 import os
 import streamlit as st
-from llama_index import VectorStoreIndex, ServiceContext, Document
+from llama_index import VectorStoreIndex, Document, ServiceContext
 from llama_index.llms import OpenAI
 from pathlib import Path
 import PyPDF2
-from PyPDF2 import PdfReader 
-from llama_index import download_loader
-import llama_hub
 import openai
 
 # Set your OpenAI API key
-openai.api_key = st.secrets.OPENAI_API_KEY
+openai.api_key = "YOUR_OPENAI_API_KEY"
 st.header("Polisvoorwaardentool")
-
-PDFReader = download_loader("PDFReader")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Function to categorize PDFs
 def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
         prefix = os.path.basename(pdf).split('_')[0]
         # Mapping logic based on prefixes
-        category_map.setdefault({
-            "Auto": "Autoverzekering",
-            "AVB": "Bedrijfsaansprakelijkheidsverzekering",
-            "BestAVB": "AVB Bestuurders",
-            "BS": "Bedrijfsschadeverzekering",
-            "BestAuto": "Bestelautoverzekering",
-            "Brand": "Brandverzekeringen",
-            "Cara": "Caravanverzekering",
-            "EigVerv": "Eigen vervoer",
-            "Fiets": "Fietsverzekering",
-            "Geb": "Gebouwen",
-            "GW": "Goed Werkgeverschap",
-            "IB": "Inboedelverzekering",
-            "Inv": "Inventaris",
-            "Mot": "Motorverzekering",
-            "RB": "Rechtsbijstandverzekering",
-            "Reis": "Reisverzekering",
-            "Scoot": "Scootmobielverzekering",
-            "WEGAS": "WEGAS",
-            "WerkMat": "Werk- en landbouwmaterieelverzekering",
-            "WEGAM": "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)",
-            "Woon": "Woonhuisverzekering"
-        }.get(prefix, "Overige"), []).append(pdf)
-
+        category_map.setdefault(
+            {
+                "Auto": "Autoverzekering",
+                "AVB": "Bedrijfsaansprakelijkheidsverzekering",
+                "BestAVB": "AVB Bestuurders",
+                "BS": "Bedrijfsschadeverzekering",
+                "BestAuto": "Bestelautoverzekering",
+                "Brand": "Brandverzekeringen",
+                "Cara": "Caravanverzekering",
+                "EigVerv": "Eigen vervoer",
+                "Fiets": "Fietsverzekering",
+                "Geb": "Gebouwen",
+                "GW": "Goed Werkgeverschap",
+                "IB": "Inboedelverzekering",
+                "Inv": "Inventaris",
+                "Mot": "Motorverzekering",
+                "RB": "Rechtsbijstandverzekering",
+                "Reis": "Reisverzekering",
+                "Scoot": "Scootmobielverzekering",
+                "WEGAS": "WEGAS",
+                "WerkMat": "Werk- en landbouwmaterieelverzekering",
+                "WEGAM": "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)",
+                "Woon": "Woonhuisverzekering"
+            }.get(prefix, "Overige"), []
+        ).append(pdf)
     return category_map
 
-def load_document(document_path):
+# Function to load and index a document
+def load_and_index_document(document_path):
     with st.spinner("Loading and indexing the document..."):
         loader = PDFReader()
         documents = loader.load_data(file=Path(document_path))
         doc = Document(content=documents[0].content)
         service_context = ServiceContext.from_defaults(
-            llm=OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="..."))
+            llm=OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="...")
+        )
         index = VectorStoreIndex.from_documents([doc], service_context=service_context)
         return index.as_chat_engine(chat_mode="condense_question", verbose=True)
 
 # Specify the directory where your PDFs are stored
-pdf_dir = "./MelleJo/polisvoorwaardentool/preloaded_pdfs/"
+pdf_dir = "./polisvoorwaardentool/preloaded_pdfs/"
 
 if not os.path.exists(pdf_dir):
     st.warning("PDF directory does not exist.")
@@ -81,8 +80,9 @@ category = st.selectbox("Choose a category", list(category_map.keys()))
 document_name = st.selectbox("Choose a document", category_map[category])
 
 if 'chat_engine' not in st.session_state or st.session_state.selected_document != document_name:
-    st.session_state.chat_engine = load_document(os.path.join(pdf_dir, document_name))
-    st.session_state.selected_document = document_name
+    st.session_state.chat_engine = load_and_index_document(os.path.join(pdf_dir, document_name))
+
+st.session_state.selected_document = document_name
 
 # Chat interface
 if prompt := st.chat_input("Your question"):

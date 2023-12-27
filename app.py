@@ -59,7 +59,7 @@ def load_document(document_path):
         return index.as_chat_engine(chat_mode="condense_question", verbose=True)
 
 # Specify the directory where your PDFs are stored
-pdf_dir = "./preloaded_pdfs/"
+pdf_dir = "./polisvoorwaardentool/preloaded_pdfs/"
 
 if not os.path.exists(pdf_dir):
     st.warning("PDF directory does not exist.")

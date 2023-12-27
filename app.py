@@ -50,14 +50,21 @@ def categorize_pdfs(pdf_list):
 # Function to load and index a document
 def load_and_index_document(document_path):
     with st.spinner("Loading and indexing the document..."):
-        loader = PdfReader()
-        documents = loader.load_data(file=Path(document_path))
-        doc = Document(content=documents[0].content)
+        with open(document_path, 'rb') as file:  # Open the PDF file in binary mode
+            reader = PdfReader(file)  # Initialize PdfReader with the file object
+            document_text = ""
+            for page in reader.pages:  # Iterate through each page
+                text = page.extract_text()  # Extract text from each page
+                if text:  # Check if text extraction is successful
+                    document_text += text
+
+        doc = Document(content=document_text)  # Create a document with the extracted text
         service_context = ServiceContext.from_defaults(
             llm=OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="...")
         )
         index = VectorStoreIndex.from_documents([doc], service_context=service_context)
         return index.as_chat_engine(chat_mode="condense_question", verbose=True)
+
 
 # Specify the directory where your PDFs are stored
 pdf_dir = "./preloaded_pdfs/"

@@ -16,6 +16,7 @@ from langchain.callbacks import get_openai_callback
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import create_citation_fuzzy_match_chain
 
 # Security
 from hashlib import sha256
@@ -106,6 +107,7 @@ def main():
 
     # Set up LangChain components
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-16k-0613", temperature=0)
+    citation_chain = create_citation_fuzzy_match_chain(llm)
     qa_chain = load_qa_chain(llm, chain_type="map_reduce")
     qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
@@ -114,16 +116,22 @@ def main():
     # Get user input and generate response
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:
-        response = qa_document_chain.run(
-            input_document=pdf_text,
-            question=user_question
-        )
-        st.write(response)
+        result = citation_chain.run(question=user_question, context=pdf_text)
+
+        if result.answer:
+            for fact in result.answer:
+                st.write("Statement:", fact.fact)
+                for span in fact.get_spans(pdf_text):
+                    st.write("Citation:", highlight(pdf_text, span))
+        else:
+            st.write("No relevant information found.")
 
     # Helper function to process the selected PDF
     
-
-# Execute the main function when the script is run
+    def highlight(text, span):
+        return "..." + text[span[0] - 20 : span[0]] + "*" + "\033[91m" + text[span[0] : span[1]] + "\033[0m" + "*" + text[span[1] : span[1] + 20] + "..."
+    # Execute the main function when the script is run
+    
 if __name__ == '__main__':
     main()
 

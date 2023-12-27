@@ -105,10 +105,12 @@ def main():
     pdf_text = process_pdf(selected_pdf_path)
 
     # Set up LangChain components
-    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2)
-    qa_chain = load_qa_chain(llm = llm, chain_type="map_reduce")
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+    qa_chain = load_qa_chain(llm, chain_type="map_reduce")
     qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
+
+    
     # Get user input and generate response
     user_question = st.text_input("Stel een vraag over de polisvoorwaarden")
     if user_question:

@@ -106,7 +106,7 @@ def main():
 
     # Set up LangChain components
     llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2)
-    qa_chain = load_qa_chain(llm, chain_type="map_reduce")
+    qa_chain = load_qa_chain(llm = llm, chain_type="map_reduce")
     qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
     # Get user input and generate response

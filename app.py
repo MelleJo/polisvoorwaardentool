@@ -50,15 +50,19 @@ def load_document(document_path):
     with st.spinner("Loading and indexing the document..."):
         loader = PDFReader()
         documents = loader.load_data(file=Path(document_path))
-        doc = Document(content=documents[0].content)  # Assuming one document is loaded
+        doc = Document(content=documents[0].content)
         service_context = ServiceContext.from_defaults(
             llm=OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="..."))
         index = VectorStoreIndex.from_documents([doc], service_context=service_context)
         return index.as_chat_engine(chat_mode="condense_question", verbose=True)
 
+
 # Get all PDFs in the preloaded_pdfs directory
-all_pdfs = os.listdir("./preloaded_pdfs")
-category_map = categorize_pdfs(all_pdfs)
+    # Retrieve all PDFs from the directory
+    pdf_dir = "preloaded_pdfs/"
+    all_pdfs = [os.path.join(dp, f) for dp, dn, filenames in os.walk(pdf_dir) for f in filenames if f.endswith('.pdf')]
+    category_map = categorize_pdfs(all_pdfs)
+
 
 # Category and Document Selection
 category = st.selectbox("Choose a category", list(category_map.keys()))

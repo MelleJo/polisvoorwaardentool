@@ -123,12 +123,12 @@ def main():
         )
         st.write(response)
 
-# Helper function to process the selected PDF
-def process_pdf(pdf_path):
-    with open(pdf_path, "rb") as f:
-        pdf_reader = PdfReader(f)
-        text = "".join(page.extract_text() or "" for page in pdf_reader.pages)
-    return text
+    # Helper function to process the selected PDF
+    def process_pdf(pdf_path):
+        with open(pdf_path, "rb") as f:
+            pdf_reader = PdfReader(f)
+            text = "".join(page.extract_text() or "" for page in pdf_reader.pages)
+        return text
 
 # Execute the main function when the script is run
 if __name__ == '__main__':

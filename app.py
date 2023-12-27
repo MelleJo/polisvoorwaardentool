@@ -91,17 +91,19 @@ if not all_pdfs:
 category_map = categorize_pdfs(all_pdfs)
 
 # Category and Document Selection
+# Category and Document Selection
 category = st.selectbox("Choose a category", list(category_map.keys()))
 document_name = st.selectbox("Choose a document", category_map[category])
 
-# Construct the correct path
-# Ensure document_name does not already include 'pdf_dir'
+# Construct the full path to the document
+# Ensure that document_name is a relative path from pdf_dir
 full_document_path = os.path.join(pdf_dir, document_name)
 
 if 'chat_engine' not in st.session_state or st.session_state.selected_document != document_name:
     st.session_state.chat_engine = load_and_index_document(full_document_path)
 
 st.session_state.selected_document = document_name
+
 
 
 # Chat interface

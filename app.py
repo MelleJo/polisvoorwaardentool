@@ -4,7 +4,7 @@ from llama_index import VectorStoreIndex, Document, ServiceContext
 from llama_index.llms import OpenAI
 from pathlib import Path
 import PyPDF2
-from PyPDF2 import PDFReader
+from PyPDF2 import PdfReader
 import openai
 
 # Set your OpenAI API key

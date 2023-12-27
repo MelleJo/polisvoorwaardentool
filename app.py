@@ -2,38 +2,69 @@ import streamlit as st
 from llama_index import VectorStoreIndex, ServiceContext, Document
 from llama_index.llms import OpenAI
 import openai
-from pdfminer.high_level import extract_text
+from pathlib import Path
+from llama_index import download_loader
 import os
 
 openai.api_key = st.secrets.openai_key
 st.header("Polisvoorwaardentool")
 
-# Initialize the chat message history
+PDFReader = download_loader("PDFReader")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Function to convert a single PDF to text
-def convert_pdf_to_text(pdf_path):
-    return extract_text(pdf_path)
+def categorize_pdfs(pdf_list):
+    category_map = {}
+    for pdf in pdf_list:
+        prefix = os.path.basename(pdf).split('_')[0]
+        # Mapping logic based on prefixes
+        category_map.setdefault({
+            "Auto": "Autoverzekering",
+            "AVB": "Bedrijfsaansprakelijkheidsverzekering",
+            "BestAVB": "AVB Bestuurders",
+            "BS": "Bedrijfsschadeverzekering",
+            "BestAuto": "Bestelautoverzekering",
+            "Brand": "Brandverzekeringen",
+            "Cara": "Caravanverzekering",
+            "EigVerv": "Eigen vervoer",
+            "Fiets": "Fietsverzekering",
+            "Geb": "Gebouwen",
+            "GW": "Goed Werkgeverschap",
+            "IB": "Inboedelverzekering",
+            "Inv": "Inventaris",
+            "Mot": "Motorverzekering",
+            "RB": "Rechtsbijstandverzekering",
+            "Reis": "Reisverzekering",
+            "Scoot": "Scootmobielverzekering",
+            "WEGAS": "WEGAS",
+            "WerkMat": "Werk- en landbouwmaterieelverzekering",
+            "WEGAM": "Werkgeversaansprakelijkheid Motorrijtuigen (WEGAM)",
+            "Woon": "Woonhuisverzekering"
+        }.get(prefix, "Overige"), []).append(pdf)
 
-# Function to load and index a single document
+    return category_map
+
 def load_document(document_path):
     with st.spinner("Loading and indexing the document..."):
-        text_content = convert_pdf_to_text(document_path)
-        doc = Document(content=text_content)
+        loader = PDFReader()
+        documents = loader.load_data(file=Path(document_path))
+        doc = Document(content=documents[0].content)  # Assuming one document is loaded
         service_context = ServiceContext.from_defaults(
-            llm=OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert in insurance policies. Please provide detailed and accurate responses."))
+            llm=OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="..."))
         index = VectorStoreIndex.from_documents([doc], service_context=service_context)
         return index.as_chat_engine(chat_mode="condense_question", verbose=True)
 
-# Category and Document Selection
-categories = ["AVB Bestuurders", "AVB", "Autoverzekering", "..."] # Add all your categories here
-category = st.selectbox("Choose a category", categories)
-document_name = st.selectbox("Choose a document", os.listdir(f"./preloaded_pdfs/{category}"))  # Adjust the path as needed
+# Get all PDFs in the preloaded_pdfs directory
+all_pdfs = os.listdir("./preloaded_pdfs")
+category_map = categorize_pdfs(all_pdfs)
 
-# Load and index the selected document
+# Category and Document Selection
+category = st.selectbox("Choose a category", list(category_map.keys()))
+document_name = st.selectbox("Choose a document", category_map[category])
+
 if 'chat_engine' not in st.session_state or st.session_state.selected_document != document_name:
-    st.session_state.chat_engine = load_document(f"./preloaded_pdfs/{category}/{document_name}")
+    st.session_state.chat_engine = load_document(f"./preloaded_pdfs/{document_name}")
     st.session_state.selected_document = document_name
 
 # Chat interface

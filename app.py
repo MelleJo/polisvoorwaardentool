@@ -44,6 +44,8 @@ def categorize_pdfs(pdf_list):
         category_map.setdefault(category, []).append(pdf)
     return category_map
 
+st.write("Full Document Path:", full_document_path)
+
 # Function to load and index a document
 def load_and_index_document(document_path):
     with st.spinner("Loading and indexing the document..."):

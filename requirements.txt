@@ -1,5 +1,5 @@
 streamlit
-openai
 llama-index
 nltk
 PyPDF2
+openai == 1.3.9.

@@ -7,7 +7,7 @@ from pathlib import Path
 from llama_index import download_loader
 import os
 
-openai.api_key = st.secrets.openai_key
+openai.api_key = st.secrets.OPENAI_API_KEY
 st.header("Polisvoorwaardentool")
 
 PDFReader = download_loader("PDFReader")

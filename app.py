@@ -20,7 +20,6 @@ def categorize_pdfs(pdf_list):
     category_map = {}
     for pdf in pdf_list:
         prefix = os.path.basename(pdf).split('_')[0]
-        # Mapping logic based on prefixes
         category = {
             "Auto": "Autoverzekering",
             "AVB": "Bedrijfsaansprakelijkheidsverzekering",
@@ -46,7 +45,6 @@ def categorize_pdfs(pdf_list):
         }.get(prefix, "Overige")
         category_map.setdefault(category, []).append(pdf)
     return category_map
-
 
 # Function to load and index a document
 def load_and_index_document(document_path):
@@ -91,13 +89,21 @@ category_map = categorize_pdfs(all_pdfs)
 category = st.selectbox("Choose a category", list(category_map.keys()))
 document_name = st.selectbox("Choose a document", category_map[category])
 
+# Ensure document_name is relative to pdf_dir
+if document_name.startswith(pdf_dir):
+    document_name = document_name[len(pdf_dir):].lstrip('/\\')
+
 # Construct the full path and load the document if not already loaded
 full_document_path = os.path.join(pdf_dir, document_name)
 st.write("Full Document Path:", full_document_path)
 
 if st.session_state.selected_document != document_name:
-    st.session_state.chat_engine = load_and_index_document(full_document_path)
-    st.session_state.selected_document = document_name
+    chat_engine = load_and_index_document(full_document_path)
+    if chat_engine is not None:
+        st.session_state.chat_engine = chat_engine
+        st.session_state.selected_document = document_name
+    else:
+        st.error("Failed to initialize chat engine. Please check the document.")
 
 # Chat interface
 if prompt := st.text_input("Your question"):

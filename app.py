@@ -9,8 +9,11 @@ import openai
 openai.api_key = "YOUR_OPENAI_API_KEY"
 st.header("Polisvoorwaardentool")
 
+# Initialize session state variables
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "selected_document" not in st.session_state:
+    st.session_state.selected_document = None
 
 # Function to categorize PDFs
 def categorize_pdfs(pdf_list):
@@ -44,7 +47,6 @@ def categorize_pdfs(pdf_list):
         category_map.setdefault(category, []).append(pdf)
     return category_map
 
-st.write("Full Document Path:", full_document_path)
 
 # Function to load and index a document
 def load_and_index_document(document_path):
@@ -72,47 +74,30 @@ def load_and_index_document(document_path):
 # Specify the directory where your PDFs are stored
 pdf_dir = "./preloaded_pdfs/"
 
+# Check for PDF directory existence
 if not os.path.exists(pdf_dir):
     st.warning("PDF directory does not exist.")
     st.stop()
 
-# Retrieve all PDFs from the directory and its subdirectories
-all_pdfs = []
-for root, dirs, files in os.walk(pdf_dir):
-    for file in files:
-        if file.endswith('.pdf'):
-            all_pdfs.append(os.path.join(root, file))
-
+# Retrieve and categorize PDFs
+all_pdfs = [os.path.join(root, file) for root, dirs, files in os.walk(pdf_dir) for file in files if file.endswith('.pdf')]
 if not all_pdfs:
     st.warning("No PDFs found in the directory.")
     st.stop()
 
-# Categorize the PDFs - ensure this is called before using category_map
 category_map = categorize_pdfs(all_pdfs)
-
-# Category and Document Selection
-# ... [earlier parts of your code]
 
 # Category and Document Selection
 category = st.selectbox("Choose a category", list(category_map.keys()))
 document_name = st.selectbox("Choose a document", category_map[category])
 
-# Construct the full path to the document
-# Ensure that document_name is a relative path from pdf_dir
+# Construct the full path and load the document if not already loaded
 full_document_path = os.path.join(pdf_dir, document_name)
-
-# Debugging: Print the full document path
 st.write("Full Document Path:", full_document_path)
 
-if 'chat_engine' not in st.session_state or st.session_state.selected_document != document_name:
+if st.session_state.selected_document != document_name:
     st.session_state.chat_engine = load_and_index_document(full_document_path)
-
-st.session_state.selected_document = document_name
-
-# ... [rest of your code]
-
-
-
+    st.session_state.selected_document = document_name
 
 # Chat interface
 if prompt := st.text_input("Your question"):
@@ -120,11 +105,10 @@ if prompt := st.text_input("Your question"):
 
 for message in st.session_state.messages:
     with st.container():
-        st.write(message["content"])  # Removed the 'key' argument
+        st.write(message["content"])
 
 # Generate and display response
 if st.session_state.messages and st.session_state.messages[-1]["role"] != "assistant":
-    # Ensure chat_engine is not None before calling chat
     if st.session_state.get('chat_engine'):
         response = st.session_state.chat_engine.chat(st.session_state.messages[-1]["content"])
         st.session_state.messages.append({"role": "assistant", "content": response.response})

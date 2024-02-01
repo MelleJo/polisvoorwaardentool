@@ -7,7 +7,7 @@ import io
 
 # Initialize the OpenAI LLM with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-llm = OpenAI(api_key=openai_api_key, model="gpt-4-turbo-preview", temperature=0)
+model = ChatOpenAI(api_key=openai_api_key, model_name="gpt-4-turbo-preview", temperature=0.20)
 
 # Load the QA chain with the map_reduce type
 qa_chain = load_qa_chain(llm, chain_type="map_reduce")

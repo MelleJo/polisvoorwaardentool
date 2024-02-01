@@ -1,49 +1,45 @@
 import streamlit as st
-from langchain_openai import ChatOpenAI
-from langchain.chains import AnalyzeDocumentChain
-from langchain.chains.question_answering import load_qa_chain
+import os
 from PyPDF2 import PdfReader
-import io
 
-# Initialize the OpenAI LLM with your API key
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-model = ChatOpenAI(api_key=openai_api_key, model_name="gpt-4-turbo-preview", temperature=0.20)
+# Assuming your Streamlit app and documents are in the same GitHub repository
+# and you're working in a deployment environment that clones the entire repo.
+# Adjust BASE_DIR as needed if your app.py is not at the root of the repo.
+BASE_DIR = "preloaded_pdfs/PolisvoorwaardenVA"
 
-# Load the QA chain with the map_reduce type
-qa_chain = load_qa_chain(llm, chain_type="map_reduce")
+def get_categories():
+    """Get a list of categories based on folder names."""
+    return sorted(next(os.walk(BASE_DIR))[1])
 
-# Setup the AnalyzeDocumentChain with the QA chain
-qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
+def get_documents(category):
+    """Get a list of document names for a given category."""
+    category_path = os.path.join(BASE_DIR, category)
+    return sorted([doc for doc in next(os.walk(category_path))[2] if doc.endswith('.pdf')])
+
+def extract_text_from_pdf(file_path):
+    """Extract text from a PDF file given its path."""
+    document_text = ""
+    with open(file_path, 'rb') as file:
+        reader = PdfReader(file)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                document_text += text + "\n"
+    return document_text
 
 def main():
     st.title("Polisvoorwaardentool")
 
-    # Allow users to upload a PDF document
-    uploaded_file = st.file_uploader("Choose a document", type=["pdf"])
-    question = st.text_input("Enter your question here")
-
-    if uploaded_file is not None and question:
-        # Extract text from the uploaded PDF document
-        input_document = extract_text_from_pdf(uploaded_file)
-
-        # Run the QA document chain on the uploaded document and the user's question
-        answer = qa_document_chain.run(
-            input_document=input_document,
-            question=question,
-        )
-
-        # Display the answer to the user
-        st.write("Answer:", answer)
-
-def extract_text_from_pdf(uploaded_file):
-    """Extract text from the uploaded PDF file."""
-    document_text = ""
-    reader = PdfReader(io.BytesIO(uploaded_file.getvalue()))
-    for page in reader.pages:
-        text = page.extract_text()
-        if text:
-            document_text += text + "\n"
-    return document_text
+    categories = get_categories()
+    selected_category = st.selectbox("Select a category:", categories)
+    
+    documents = get_documents(selected_category)
+    selected_document = st.selectbox("Select a document:", documents)
+    
+    if st.button("Extract Text"):
+        document_path = os.path.join(BASE_DIR, selected_category, selected_document)
+        document_text = extract_text_from_pdf(document_path)
+        st.text_area("Document Text", document_text, height=300)
 
 if __name__ == "__main__":
     main()

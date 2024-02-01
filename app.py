@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain.llms import OpenAI
+from langchain_openai import OpenAI
 from langchain.chains import AnalyzeDocumentChain
 from langchain.chains.question_answering import load_qa_chain
 from PyPDF2 import PdfReader

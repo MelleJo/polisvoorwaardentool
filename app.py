@@ -3,7 +3,7 @@ import os
 from PyPDF2 import PdfReader
 # Update imports to use langchain_community
 from langchain_community.llms import OpenAI
-from langchain_community.openai import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 
 BASE_DIR = "preloaded_pdfs/PolisvoorwaardenVA"
 

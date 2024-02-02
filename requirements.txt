@@ -1,6 +1,4 @@
 streamlit
-langchain
 openai
 PyPDF2
-langchain_openai
-os
+langchain-community

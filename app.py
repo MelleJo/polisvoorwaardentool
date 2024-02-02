@@ -2,6 +2,8 @@ import streamlit as st
 import os
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import HumanMessagePromptTemplate
 
 BASE_DIR = "preloaded_pdfs/PolisvoorwaardenVA"
 
@@ -9,6 +11,10 @@ BASE_DIR = "preloaded_pdfs/PolisvoorwaardenVA"
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 # Initialize the model with the API key
 model = ChatOpenAI(api_key=openai_api_key, model_name="gpt-4-turbo-preview", temperature=0.20)
+
+human_message_prompt = HumanMessagePromptTemplate.from_template(prompt_template)
+
+chat_prompt = ChatPromptTemplate.from_messages([human_message_prompt])
 
 def get_categories():
     return sorted(next(os.walk(BASE_DIR))[1])

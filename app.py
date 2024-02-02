@@ -1,27 +1,24 @@
 import streamlit as st
 from PyPDF2 import PdfReader
 import os
-from langchain.llms import OpenAI
-from langchain.chats import ChatCompletion
+# Adjust imports according to the correct LangChain usage
+from langchain.llms import OpenAI  # Assuming this is the correct import based on your setup
 
-# Setup API key and initialize LangChain OpenAI model
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-llm = OpenAI(api_key=openai_api_key, model="gpt-4-turbo")
-
-# Define paths to your document categories
 BASE_DIR = "/path/to/your/documents"
 
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+
+# Initialize the OpenAI model with the API key
+llm = OpenAI(api_key=openai_api_key, model="gpt-4-turbo")  # Adjust model name as necessary
+
 def list_categories(base_dir=BASE_DIR):
-    """List all categories (directories) within the base directory."""
-    return next(os.walk(base_dir))[1]
+    return sorted(os.listdir(base_dir))
 
 def list_documents(category):
-    """List all documents within a given category."""
     category_path = os.path.join(BASE_DIR, category)
     return [doc for doc in os.listdir(category_path) if doc.endswith('.pdf')]
 
 def extract_text_from_pdf(filepath):
-    """Extract text from a PDF file."""
     text = ""
     with open(filepath, 'rb') as file:
         reader = PdfReader(file)
@@ -29,27 +26,28 @@ def extract_text_from_pdf(filepath):
             text += page.extract_text() + "\n"
     return text
 
+def generate_response(document_text, question):
+    # Constructing the prompt
+    prompt = f"Given the document text: {document_text}\n\nQuestion: {question}\nAnswer:"
+    response = llm.generate(prompt=prompt, max_tokens=500)  # Adjust max_tokens if necessary
+    return response
+
 def main():
     st.title("Polisvoorwaardentool Q&A")
     
-    # Document selection UI
-    category = st.selectbox("Choose a category:", list_categories())
-    document_name = st.selectbox("Choose a document:", list_documents(category))
-    question = st.text_input("Enter your question:")
+    categories = list_categories(BASE_DIR)
+    selected_category = st.selectbox("Choose a category:", categories)
     
-    if st.button("Get Answer"):
-        document_path = os.path.join(BASE_DIR, category, document_name)
+    documents = list_documents(selected_category)
+    selected_document = st.selectbox("Choose a document:", documents)
+    
+    user_question = st.text_input("Enter your question:")
+    
+    if st.button("Get Answer") and user_question:
+        document_path = os.path.join(BASE_DIR, selected_category, selected_document)
         document_text = extract_text_from_pdf(document_path)
-        
-        # Format input for LangChain ChatCompletion
-        chat_input = {"messages": [{"role": "system", "content": document_text}, {"role": "user", "content": question}]}
-        
-        # Get answer from LangChain model
-        chat_model = ChatCompletion(llm=llm)
-        answer = chat_model.complete(chat_input)
-        
-        # Display the answer
-        st.write(answer["choices"][0]["message"]["content"])
+        answer = generate_response(document_text, user_question)
+        st.write(answer)
 
 if __name__ == "__main__":
     main()

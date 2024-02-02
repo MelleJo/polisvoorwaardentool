@@ -1,13 +1,11 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-# Update imports to use langchain_community
-from langchain_community.llms import OpenAI
-from langchain_community.chat_models import ChatOpenAI
+# Updated imports to use langchain-openai
+from langchain_openai import OpenAI, ChatOpenAI
 
 BASE_DIR = "preloaded_pdfs/PolisvoorwaardenVA"
 
-# Corrected API key access
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 # Initialize OpenAI LLM with the API key
 llm = OpenAI(api_key=openai_api_key)
@@ -31,4 +29,7 @@ def extract_text_from_pdf(file_path):
 
 def main():
     st.title("Polisvoorwaardentool")
-    # Include the rest of your Streamlit app logic here
+    # The rest of your Streamlit app logic here
+
+if __name__ == "__main__":
+    main()

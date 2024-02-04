@@ -1,53 +1,45 @@
 import streamlit as st
-from PyPDF2 import PdfReader
 import os
-# Adjust imports according to the correct LangChain usage
-from langchain.llms import OpenAI  # Assuming this is the correct import based on your setup
+from PyPDF2 import PdfReader
 
-BASE_DIR = "/path/to/your/documents"
+# Base directory where your preloaded PDFs are stored within your project structure
+BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
-openai_api_key = st.secrets["OPENAI_API_KEY"]
+def get_categories():
+    """Get a list of categories based on folder names."""
+    return sorted(next(os.walk(BASE_DIR))[1])
 
-# Initialize the OpenAI model with the API key
-llm = OpenAI(api_key=openai_api_key, model="gpt-4-turbo")  # Adjust model name as necessary
-
-def list_categories(base_dir=BASE_DIR):
-    return sorted(os.listdir(base_dir))
-
-def list_documents(category):
+def get_documents(category):
+    """Get a list of document names for a given category."""
     category_path = os.path.join(BASE_DIR, category)
-    return [doc for doc in os.listdir(category_path) if doc.endswith('.pdf')]
+    return sorted([doc for doc in next(os.walk(category_path))[2] if doc.endswith('.pdf')])
 
-def extract_text_from_pdf(filepath):
-    text = ""
-    with open(filepath, 'rb') as file:
+def extract_text_from_pdf(file_path):
+    """Extract text from a PDF file given its path."""
+    document_text = ""
+    with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         for page in reader.pages:
-            text += page.extract_text() + "\n"
-    return text
-
-def generate_response(document_text, question):
-    # Constructing the prompt
-    prompt = f"Given the document text: {document_text}\n\nQuestion: {question}\nAnswer:"
-    response = llm.generate(prompt=prompt, max_tokens=500)  # Adjust max_tokens if necessary
-    return response
+            text = page.extract_text()
+            if text:
+                document_text += text + "\n"
+    return document_text
 
 def main():
-    st.title("Polisvoorwaardentool Q&A")
-    
-    categories = list_categories(BASE_DIR)
-    selected_category = st.selectbox("Choose a category:", categories)
-    
-    documents = list_documents(selected_category)
-    selected_document = st.selectbox("Choose a document:", documents)
-    
-    user_question = st.text_input("Enter your question:")
-    
-    if st.button("Get Answer") and user_question:
+    st.title("Polisvoorwaardentool")
+
+    # Allow user to select a category
+    categories = get_categories()
+    selected_category = st.selectbox("Select a category:", categories)
+
+    # Display documents based on selected category
+    documents = get_documents(selected_category)
+    selected_document = st.selectbox("Select a document:", documents)
+
+    if st.button("Extract Text"):
         document_path = os.path.join(BASE_DIR, selected_category, selected_document)
         document_text = extract_text_from_pdf(document_path)
-        answer = generate_response(document_text, user_question)
-        st.write(answer)
+        st.text_area("Document Text", document_text, height=300)
 
 if __name__ == "__main__":
     main()

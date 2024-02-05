@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from langchain.llms import OpenAI
-from langchain.chains import ConversationalRetrievalChain
+from langchain_community import OpenAI
+from langchain_community import ConversationalRetrievalChain
 
 # Initialize the OpenAI model with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]

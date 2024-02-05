@@ -37,7 +37,7 @@ def answer_question(document_text, question):
     """Answer a question using the document text."""
     # Here you might want to preprocess the document_text to fit the model's token limit
     qa_chain = ChatOpenAI(llm=llm, reference_text=document_text)
-    return qa_chain.run(question)
+    return qa_chain.invoke(question)
 
 def main():
     st.title("Polisvoorwaardentool")

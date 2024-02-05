@@ -1,12 +1,14 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from langchain_openai import OpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+from langchain_openai import ChatOpenAI
 from langchain_community import ConversationalRetrievalChain
 
 # Initialize the OpenAI model with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-llm = OpenAI(api_key=openai_api_key)
+llm = ChatOpenAI(api_key=openai_api_key)
 
 # Setup your base directory
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")

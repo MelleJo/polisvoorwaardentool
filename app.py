@@ -1,8 +1,14 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
+from langchain.llms import OpenAI
+from langchain.chains import SimpleQuestionAnsweringChain
 
-# Base directory where your preloaded PDFs are stored within your project structure
+# Initialize the OpenAI model with your API key
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+llm = OpenAI(api_key=openai_api_key)
+
+# Setup your base directory
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
@@ -25,21 +31,32 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
+def answer_question(document_text, question):
+    """Answer a question using the document text."""
+    # Here you might want to preprocess the document_text to fit the model's token limit
+    qa_chain = SimpleQuestionAnsweringChain(llm=llm, reference_text=document_text)
+    return qa_chain.run(question)
+
 def main():
     st.title("Polisvoorwaardentool")
 
-    # Allow user to select a category
     categories = get_categories()
     selected_category = st.selectbox("Select a category:", categories)
 
-    # Display documents based on selected category
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Select a document:", documents)
 
-    if st.button("Extract Text"):
-        document_path = os.path.join(BASE_DIR, selected_category, selected_document)
-        document_text = extract_text_from_pdf(document_path)
-        st.text_area("Document Text", document_text, height=300)
+    document_path = os.path.join(BASE_DIR, selected_category, selected_document)
+    document_text = extract_text_from_pdf(document_path)
+    
+    # UI to ask a question
+    question = st.text_input("Ask a question about the document:")
+    if st.button("Get Answer"):
+        if document_text and question:
+            answer = answer_question(document_text, question)
+            st.write(answer)
+        else:
+            st.write("Please make sure both the document is selected and a question is entered.")
 
 if __name__ == "__main__":
     main()

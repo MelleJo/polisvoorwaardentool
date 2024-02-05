@@ -7,7 +7,7 @@ from langchain_openai import ChatOpenAI
 
 # Initialize the OpenAI model with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-llm = ChatOpenAI(api_key=openai_api_key, model = "gpt-4")
+llm = ChatOpenAI(api_key=openai_api_key, model = "gpt-4-turbo-preview")
 prompt = ChatPromptTemplate.from_template(
     "Beantwoord de volgende vraag {question} over de volgende voorwaarden {document_text}"
 )

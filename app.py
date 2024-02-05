@@ -38,7 +38,8 @@ def extract_text_from_pdf(file_path):
 
 def answer_question(document_text, question): 
     chain = prompt | llm
-    return chain.invoke({question})
+    response = chain.invoke({"question": question, "document_text": document_text})
+    return response
 
 
 def main():

@@ -9,7 +9,7 @@ from langchain_openai import ChatOpenAI
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 llm = ChatOpenAI(api_key=openai_api_key)
 prompt = ChatPromptTemplate.from_template(
-    "Beantwoord de volgende vraag {question} over de volgende voorwaarden {document_text}}"
+    "Beantwoord de volgende vraag {question} over de volgende voorwaarden {document_text}"
 )
 
 

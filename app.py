@@ -8,6 +8,9 @@ from langchain_openai import ChatOpenAI
 # Initialize the OpenAI model with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 llm = ChatOpenAI(api_key=openai_api_key)
+prompt = ChatPromptTemplate.from_template(
+    "Beantwoord de volgende vraag {question} over de volgende voorwaarden {document_text}}"
+)
 
 
 # Setup your base directory
@@ -33,11 +36,10 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
-def answer_question(document_text, question):
-    prompt = ChatPromptTemplate.from_template(
-    "Beantwoord de volgende vraag {question} over de volgende voorwaarden {document_text}}"
-)
-chain = prompt | llm
+def answer_question(document_text, question): 
+    chain = prompt | llm
+    return chain.invoke({question})
+
 
 def main():
     st.title("Polisvoorwaardentool")

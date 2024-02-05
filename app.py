@@ -4,7 +4,7 @@ from PyPDF2 import PdfReader
 from langchain_core.prompts import ChatPromptTemplate
 
 from langchain_openai import ChatOpenAI
-from langchain_community import ConversationalRetrievalChain
+#from langchain_community import ConversationalRetrievalChain
 
 # Initialize the OpenAI model with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
@@ -36,7 +36,7 @@ def extract_text_from_pdf(file_path):
 def answer_question(document_text, question):
     """Answer a question using the document text."""
     # Here you might want to preprocess the document_text to fit the model's token limit
-    qa_chain = ConversationalRetrievalChain(llm=llm, reference_text=document_text)
+    qa_chain = ChatOpenAI(llm=llm, reference_text=document_text)
     return qa_chain.run(question)
 
 def main():

@@ -49,8 +49,7 @@ def main():
         qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
         try:
-            # Ensure the input is structured as expected by the AnalyzeDocumentChain's method
-            response = qa_document_chain.invoke(input_document=document_text, question=question)
+            response = qa_document_chain.invoke(input={'input_document': document_text, 'question': question})
             processing_time = time.time() - start_time
 
             st.write(response)  # Display the answer

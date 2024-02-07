@@ -5,7 +5,7 @@ from langchain_openai import OpenAI  # Import the OpenAI class
 
 # Initialize the OpenAI model
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-llm = OpenAI(openai_api_key=openai_api_key)  # Use your API key here
+llm = OpenAI(openai_api_key=openai_api_key, model = "gpt-4-turbo-preview")  # Use your API key here
 
 # Setup your base directory
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")

@@ -29,7 +29,7 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
-ef main():
+def main():
     st.title("Polisvoorwaardentool")
 
     categories = get_categories()

@@ -44,38 +44,42 @@ def main():
     document_text = extract_text_from_pdf(document_path)
     question = st.text_input("Ask a question about the document:")
 
-    if st.button("Get Answer") and document_text and question:
-        start_time = time.time()
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
+    
 
-        # Format the messages for batch processing
-        batch_messages = [
-            [
-                SystemMessage(content=document_text),
-                HumanMessage(content=question),
-            ],
-        ]
-        try:
-            result = llm.generate(batch_messages)
-            
-            # Extracting the first response from the result
-            if result.generations:
-                response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
-                processing_time = time.time() - start_time
+if st.button("Get Answer") and document_text and question:
+    start_time = time.time()
+    llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
 
-                st.write(response)  # Display the answer
+    # Format the messages for batch processing
+    batch_messages = [
+        [
+            SystemMessage(content=document_text),
+            HumanMessage(content=question),
+        ],
+    ]
+    try:
+        result = llm.generate(batch_messages)
+        
+        # Extracting the first response from the result
+        if result.generations:
+            response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
+            processing_time = time.time() - start_time
 
-                if st.session_state.debug_mode:
-                    st.subheader("Debug Information")
-                    st.write(f"Question: {question}")
-                    st.write(f"Processing Time: {processing_time:.2f} seconds")
-                    st.write(f"Token Usage: {result.llm_output['token_usage']}")
-                    if st.checkbox('Show Document Text'):
-                        st.write(document_text)
-            else:
-                st.error("No response generated.")
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.write(response)  # Display the answer
+
+            if st.session_state.debug_mode:
+                st.subheader("Debug Information")
+                st.write(f"Question: {question}")
+                st.write(f"Processing Time: {processing_time:.2f} seconds")
+                st.write(f"Token Usage: {result.llm_output['token_usage']}")
+                if st.checkbox('Show Document Text'):
+                    st.write(document_text)
+        else:
+            st.error("No response generated.")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
+
 
 if __name__ == "__main__":
     main()

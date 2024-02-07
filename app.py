@@ -1,13 +1,15 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from langchain_openai import ChatOpenAI  # Assuming this is the correct import for your setup
+from langchain.chains import AnalyzeDocumentChain
+from langchain.chains.question_answering import load_qa_chain
+from langchain_openai import ChatOpenAI
 
-# Initialize the OpenAI model with your API key
+# Initialize the ChatOpenAI model with GPT-4 Turbo
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-model = ChatOpenAI(api_key=openai_api_key, model="gpt-4-turbo-preview")
+llm = ChatOpenAI(api_key=openai_api_key, model="gpt-4-turbo-preview", temperature=0)
 
-# Setup your base directory
+# Setup your base directory for preloaded PDFs
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
@@ -40,24 +42,16 @@ def main():
     document_text = extract_text_from_pdf(document_path)
 
     question = st.text_input("Ask a question about the document:")
-    if st.button("Get Answer"):
-        if document_text and question:
-            # Construct messages for chat
-            messages = [
-                {"role": "system", "content": "Analyze the following document and answer questions about it."},
-                {"role": "user", "content": document_text},
-                {"role": "user", "content": question}
-            ]
-            # Use the model to get a response
-            response = model.generate(messages=messages)
-            # Extract and display the answer
-            if response and "choices" in response and response["choices"]:
-                answer = response["choices"][0]["message"]["content"]
-                st.write(answer)
-            else:
-                st.write("No response received.")
-        else:
-            st.write("Please make sure both the document is selected and a question is entered.")
+    if st.button("Get Answer") and document_text and question:
+        # Load the QA chain with the initialized ChatOpenAI model
+        qa_chain = load_qa_chain(llm, chain_type="map_reduce")
+        qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
+        
+        # Run the QA chain with the extracted document text and the user's question
+        response = qa_document_chain.run(input_document=document_text, question=question)
+        
+        # Display the response
+        st.write(response)
 
     # Download buttons logic remains the same as before
 

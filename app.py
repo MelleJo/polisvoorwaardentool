@@ -5,21 +5,17 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import AnalyzeDocumentChain
 from langchain.chains.question_answering import load_qa_chain
 
-# Directly set BASE_DIR to the path where your PDF documents are stored
-# Adjust this path as necessary to match your project's structure
+# Assuming the structure of your directories remains the same
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
-    """Get sorted list of categories (folders) within the base directory."""
     return sorted(next(os.walk(BASE_DIR))[1])
 
 def get_documents(category):
-    """Get sorted list of PDF documents within a specified category."""
     category_path = os.path.join(BASE_DIR, category)
     return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
 
 def extract_text_from_pdf(file_path):
-    """Extract text from a PDF file."""
     document_text = ""
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
@@ -52,14 +48,18 @@ def main():
         # Initialize AnalyzeDocumentChain with the QA chain
         qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
+        # Adjusting the input structure according to the expected format
+        input_structure = {
+            "input_document": document_text,  # Adjusted key as per error message
+            "question": question
+        }
+
         # Attempt to get an answer for the question based on the document
         try:
-            response = qa_document_chain.invoke(input={"document_text": document_text, "question": question})
+            response = qa_document_chain.invoke(input=input_structure)  # Corrected method call
             st.write(response)  # Display the response
         except Exception as e:
             st.error(f"An error occurred: {e}")
-
-    # Optional: Implement download buttons for PDF and text version
 
 if __name__ == "__main__":
     main()

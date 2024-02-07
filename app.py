@@ -25,6 +25,8 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
+# ...
+
 def main():
     st.title("Polisvoorwaardentool")
 
@@ -40,8 +42,9 @@ def main():
     selected_document = st.selectbox("Select a document:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
-    if st.button("Get Answer"):
-        question = st.text_input("Ask a question about the document:")
+    question = st.text_input("Ask a question about the document:")
+
+    if st.button("Get Answer") and question:
         document_text = extract_text_from_pdf(document_path)
 
         start_time = time.time()

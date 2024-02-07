@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 # Initialize the OpenAI model with your API key
@@ -43,18 +42,19 @@ def main():
     question = st.text_input("Ask a question about the document:")
     if st.button("Get Answer"):
         if document_text and question:
-            prompt = ChatPromptTemplate.from_template("Answer the following question about the document: {question}")
-            response = model(prompt.format(question=question, document_text=document_text))
-            st.write(response)
+            # Properly constructing the prompt
+            prompt_text = f"Please read the following document text:\n\n{document_text}\n\nBased on the document, answer the following question: {question}"
+            response = model.generate(prompt=prompt_text)
+            st.write(response["choices"][0]["message"]["content"])
         else:
             st.write("Please make sure both the document is selected and a question is entered.")
     
     # Download buttons
     if st.button("Download PDF"):
         with open(document_path, "rb") as file:
-            btn = st.download_button(label="Download PDF", data=file, file_name=selected_document, mime='application/pdf')
+            st.download_button(label="Download PDF", data=file, file_name=selected_document, mime='application/pdf')
     if st.button("Download Text Version"):
-        btn = st.download_button(label="Download Text", data=document_text.encode('utf-8'), file_name=selected_document.replace('.pdf', '.txt'), mime='text/plain')
+        st.download_button(label="Download Text", data=document_text.encode('utf-8'), file_name=selected_document.replace('.pdf', '.txt'), mime='text/plain')
 
 if __name__ == "__main__":
     main()

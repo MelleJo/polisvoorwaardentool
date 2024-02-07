@@ -3,9 +3,10 @@ import os
 import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 # Adjust import paths for SystemMessage and HumanMessage as necessary, 
 # the following line is based on the provided code structure and may need updating
-from langchain.llms.messages import SystemMessage, HumanMessage  
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 

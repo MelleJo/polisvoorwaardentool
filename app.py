@@ -47,8 +47,8 @@ def main():
         qa_chain = load_qa_chain(llm, chain_type="map_reduce")
         qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
         
-        # Run the QA chain with the extracted document text and the user's question
-        response = qa_document_chain.run(input_document=document_text, question=question)
+        # Run the QA chain with the extracted document text and the user's question // invoke ipv run
+        response = qa_document_chain.invoke(input_document=document_text, question=question)
         
         # Display the response
         st.write(response)

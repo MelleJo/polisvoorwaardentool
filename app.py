@@ -5,8 +5,9 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import AnalyzeDocumentChain
 from langchain.chains.question_answering import load_qa_chain
 
-# Setup your base directory for preloaded PDFs
-BASE_DIR = os.path.join(st.secrets["BASE_DIR"], "preloaded_pdfs", "PolisvoorwaardenVA")
+# Directly set BASE_DIR to the path where your PDF documents are stored
+# Adjust this path as necessary to match your project's structure
+BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
     """Get sorted list of categories (folders) within the base directory."""
@@ -29,7 +30,6 @@ def extract_text_from_pdf(file_path):
     return document_text
 
 def main():
-    """Main function for the Streamlit app."""
     st.title("Polisvoorwaardentool")
 
     categories = get_categories()
@@ -43,7 +43,7 @@ def main():
 
     question = st.text_input("Ask a question about the document:")
     if st.button("Get Answer") and document_text and question:
-        # Initialize the OpenAI model with API key and specify the model
+        # Initialize the ChatOpenAI model with the API key and specify the model
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
 
         # Load the question answering chain with the ChatOpenAI model
@@ -60,11 +60,6 @@ def main():
             st.error(f"An error occurred: {e}")
 
     # Optional: Implement download buttons for PDF and text version
-    if st.button("Download PDF"):
-        with open(document_path, "rb") as file:
-            st.download_button(label="Download PDF", data=file, file_name=selected_document, mime='application/pdf')
-    if st.button("Download Text Version"):
-        st.download_button(label="Download Text", data=document_text.encode('utf-8'), file_name=selected_document.replace('.pdf', '.txt'), mime='text/plain')
 
 if __name__ == "__main__":
     main()

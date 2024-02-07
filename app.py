@@ -1,11 +1,11 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from langchain_openai import OpenAI  # Import the OpenAI class
+from langchain_openai import ChatOpenAI  # Assuming this is the correct import for your setup
 
-# Initialize the OpenAI model
+# Initialize the OpenAI model with your API key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-llm = OpenAI(openai_api_key=openai_api_key, model = "gpt-4-turbo-preview")  # Use your API key here
+model = ChatOpenAI(api_key=openai_api_key, model="gpt-4-turbo-preview")
 
 # Setup your base directory
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
@@ -42,11 +42,20 @@ def main():
     question = st.text_input("Ask a question about the document:")
     if st.button("Get Answer"):
         if document_text and question:
-            # Formulate the prompt for the LLM
-            prompt_text = f"{document_text}\n\nQuestion: {question}\nAnswer:"
-            # Use the invoke method to get the answer
-            response = llm.invoke(prompt_text)
-            st.write(response)
+            # Construct messages for chat
+            messages = [
+                {"role": "system", "content": "Analyze the following document and answer questions about it."},
+                {"role": "user", "content": document_text},
+                {"role": "user", "content": question}
+            ]
+            # Use the model to get a response
+            response = model.generate(messages=messages)
+            # Extract and display the answer
+            if response and "choices" in response and response["choices"]:
+                answer = response["choices"][0]["message"]["content"]
+                st.write(answer)
+            else:
+                st.write("No response received.")
         else:
             st.write("Please make sure both the document is selected and a question is entered.")
 

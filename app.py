@@ -4,8 +4,6 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-# Adjust import paths for SystemMessage and HumanMessage as necessary, 
-# the following line is based on the provided code structure and may need updating
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
@@ -41,45 +39,42 @@ def main():
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Select a document:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
-    document_text = extract_text_from_pdf(document_path)
-    question = st.text_input("Ask a question about the document:")
 
-    
+    if st.button("Get Answer"):
+        question = st.text_input("Ask a question about the document:")
+        document_text = extract_text_from_pdf(document_path)
 
-if st.button("Get Answer") and document_text and question:
-    start_time = time.time()
-    llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
+        start_time = time.time()
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
 
-    # Format the messages for batch processing
-    batch_messages = [
-        [
-            SystemMessage(content=document_text),
-            HumanMessage(content=question),
-        ],
-    ]
-    try:
-        result = llm.generate(batch_messages)
-        
-        # Extracting the first response from the result
-        if result.generations:
-            response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
-            processing_time = time.time() - start_time
+        # Format the messages for batch processing
+        batch_messages = [
+            [
+                SystemMessage(content=document_text),
+                HumanMessage(content=question),
+            ],
+        ]
+        try:
+            result = llm.generate(batch_messages)
+            
+            # Extracting the first response from the result
+            if result.generations:
+                response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
+                processing_time = time.time() - start_time
 
-            st.write(response)  # Display the answer
+                st.write(response)  # Display the answer
 
-            if st.session_state.debug_mode:
-                st.subheader("Debug Information")
-                st.write(f"Question: {question}")
-                st.write(f"Processing Time: {processing_time:.2f} seconds")
-                st.write(f"Token Usage: {result.llm_output['token_usage']}")
-                if st.checkbox('Show Document Text'):
-                    st.write(document_text)
-        else:
-            st.error("No response generated.")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
-
-
+                if st.session_state.debug_mode:
+                    st.subheader("Debug Information")
+                    st.write(f"Question: {question}")
+                    st.write(f"Processing Time: {processing_time:.2f} seconds")
+                    st.write(f"Token Usage: {result.llm_output['token_usage']}")
+                    if st.checkbox('Show Document Text'):
+                        st.write(document_text)
+            else:
+                st.error("No response generated.")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

@@ -47,18 +47,22 @@ def main():
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
         qa_chain = load_qa_chain(llm, chain_type="map_reduce")
         qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
-        response = qa_document_chain.invoke(input={"document_text": document_text, "question": question})
-        processing_time = time.time() - start_time
 
-        st.write(response)  # Display the answer
+        try:
+            # Ensure the input is structured as expected by the AnalyzeDocumentChain's method
+            response = qa_document_chain.invoke(input_document=document_text, question=question)
+            processing_time = time.time() - start_time
 
-        if st.session_state.debug_mode:
-            st.subheader("Debug Information")
-            st.write(f"Question: {question}")
-            st.write(f"Processing Time: {processing_time:.2f} seconds")
-            st.write(f"Response: {response}")
-            if st.checkbox('Show Document Text'):
-                st.write(document_text)
+            st.write(response)  # Display the answer
+
+            if st.session_state.debug_mode:
+                st.subheader("Debug Information")
+                st.write(f"Question: {question}")
+                st.write(f"Processing Time: {processing_time:.2f} seconds")
+                if st.checkbox('Show Document Text'):
+                    st.write(document_text)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

@@ -29,7 +29,7 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
-def main():
+ef main():
     st.title("Polisvoorwaardentool")
 
     categories = get_categories()
@@ -43,15 +43,17 @@ def main():
 
     question = st.text_input("Ask a question about the document:")
     if st.button("Get Answer") and document_text and question:
-        # Load the QA chain with the initialized ChatOpenAI model
-        qa_chain = load_qa_chain(llm, chain_type="map_reduce")
-        qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
-        
-        # Run the QA chain with the extracted document text and the user's question // invoke ipv run
-        response = qa_document_chain.invoke(input_document=document_text, question=question)
-        
-        # Display the response
-        st.write(response)
+        # Assuming invoke now expects an 'input' argument
+        try:
+            # Adjusting to the expected 'input' argument format for invoke
+            response = qa_document_chain.invoke(input={
+                "document_text": document_text,
+                "question": question
+            })
+            # Assuming 'response' contains the answer directly or needs to be accessed appropriately
+            st.write(response)
+        except Exception as e:
+            st.write(f"An error occurred: {e}")
 
     # Download buttons logic remains the same as before
 

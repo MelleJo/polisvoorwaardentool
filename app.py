@@ -28,23 +28,23 @@ def extract_text_from_pdf(file_path):
 # ...
 
 def main():
-    st.title("Polisvoorwaardentool")
+    st.title("Polisvoorwaardentool testversie 1.0")
 
     if 'debug_mode' not in st.session_state:
         st.session_state.debug_mode = False
 
-    if st.button('Toggle Debug Mode'):
+    if st.button('Schakel debugmodus in/uit'):
         st.session_state.debug_mode = not st.session_state.debug_mode
 
     categories = get_categories()
-    selected_category = st.selectbox("Select a category:", categories)
+    selected_category = st.selectbox("Selecteer een categorie:", categories)
     documents = get_documents(selected_category)
-    selected_document = st.selectbox("Select a document:", documents)
+    selected_document = st.selectbox("Selecteer een document:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
-    question = st.text_input("Ask a question about the document:")
+    question = st.text_input("Stel een vraag over het document:")
 
-    if st.button("Get Answer") and question:
+    if st.button("Krijg antwoord") and question:
         document_text = extract_text_from_pdf(document_path)
 
         start_time = time.time()
@@ -68,16 +68,16 @@ def main():
                 st.write(response)  # Display the answer
 
                 if st.session_state.debug_mode:
-                    st.subheader("Debug Information")
-                    st.write(f"Question: {question}")
-                    st.write(f"Processing Time: {processing_time:.2f} seconds")
-                    st.write(f"Token Usage: {result.llm_output['token_usage']}")
-                    if st.checkbox('Show Document Text'):
+                    st.subheader("Debug Informatie")
+                    st.write(f"Vraag: {question}")
+                    st.write(f"Verwerkingstijd: {processing_time:.2f} seconden")
+                    st.write(f"Tokeengebruik: {result.llm_output['token_usage']}")
+                    if st.checkbox('Toon documenttekst'):
                         st.write(document_text)
             else:
-                st.error("No response generated.")
+                st.error("Geen antwoord gegenereerd.")
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error(f"Er is een fout opgetreden: {e}")
 
 if __name__ == "__main__":
     main()

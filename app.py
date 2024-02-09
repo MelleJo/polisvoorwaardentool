@@ -1,8 +1,8 @@
 import streamlit as st
 import os
+import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
@@ -24,32 +24,44 @@ def extract_text_from_pdf(file_path):
     return document_text
 
 def main():
-    st.title("Polisvoorwaardentool")
+    st.title("Polisvoorwaardentool - testversie 1.0")
+    st.session_state.debug_mode = st.checkbox('Debugmodus', value=False)
+
+    model_choice = st.selectbox("Kies model versie:", ["ChatGPT 3.5 Turbo", "ChatGPT 4"])
+    model_version = "gpt-3.5-turbo" if model_choice == "ChatGPT 3.5 Turbo" else "gpt-4"
 
     categories = get_categories()
-    selected_category = st.selectbox("Select a category:", categories)
+    selected_category = st.selectbox("Selecteer een categorie:", categories)
     documents = get_documents(selected_category)
-    selected_document = st.selectbox("Select a document:", documents)
+    selected_document = st.selectbox("Selecteer een document:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
     document_text = extract_text_from_pdf(document_path)
-    question = st.text_input("Ask a question about the document:")
 
-    if st.button("Get Answer") and document_text and question:
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-        
-        messages = [
-            SystemMessage(content="You're a helpful assistant."),
-            HumanMessage(content=question),
-        ]
-        
+    question = st.text_input("Stel een vraag over het document:")
+    if question:
+        start_time = time.time()
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=model_version)
+
+        prompt = f"{document_text}\n\nQuestion: {question}"
         try:
-            response = llm.invoke(input={'messages': messages})
+            response = llm.invoke({"prompt": prompt, "max_tokens": 512})
             if response:
-                st.write(response.choices[0].text)
+                processing_time = time.time() - start_time
+                st.write(response["content"])
+                if st.session_state.debug_mode:
+                    debug_information(processing_time, question, document_text, response["content"])
             else:
-                st.error("No response generated.")
+                st.error("Geen antwoord gegenereerd.")
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error(f"Er is een fout opgetreden: {e}")
+
+def debug_information(processing_time, question, document_text, response_text):
+    st.subheader("Debug Informatie")
+    st.write(f"Vraag: {question}")
+    st.write(f"Verwerkingstijd: {processing_time:.2f} seconden")
+    if st.checkbox('Toon documenttekst'):
+        st.write(document_text)
+    st.write(f"Antwoord: {response_text}")
 
 if __name__ == "__main__":
     main()

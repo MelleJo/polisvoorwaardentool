@@ -5,15 +5,24 @@ from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from flask import send_file
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
     return sorted(next(os.walk(BASE_DIR))[1])
 
+
+
 def get_documents(category):
     category_path = os.path.join(BASE_DIR, category)
-    return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
+    documents = [doc for doc in os.listdir(category_path) if doc.endswith('.pdf')]
+    return sorted(documents)
+
+@app.route('/download/<category>/<document>')
+def download_document(category, document):
+    document_path = os.path.join(BASE_DIR, category, document)
+    return send_file(document_path, as_attachment=True)
 
 def extract_text_from_pdf(file_path):
     document_text = ""
@@ -28,7 +37,7 @@ def extract_text_from_pdf(file_path):
 # ...
 
 def main():
-    st.title("Polisvoorwaardentool testversie 1.0")
+    st.title("Polisvoorwaardentool - testversie 1.0")
 
     if 'debug_mode' not in st.session_state:
         st.session_state.debug_mode = False

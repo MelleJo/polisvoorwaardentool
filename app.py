@@ -28,7 +28,7 @@ def extract_text_from_pdf(file_path):
 # ...
 
 def main():
-    st.title("Polisvoorwaardentool (stabiele versie 1.0")
+    st.title("Polisvoorwaardentool - stabiele versie 1.0")
 
     if 'debug_mode' not in st.session_state:
         st.session_state.debug_mode = False
@@ -37,12 +37,12 @@ def main():
         st.session_state.debug_mode = not st.session_state.debug_mode
 
     categories = get_categories()
-    selected_category = st.selectbox("Select a category:", categories)
+    selected_category = st.selectbox("Kies een categorie:", categories)
     documents = get_documents(selected_category)
-    selected_document = st.selectbox("Select a document:", documents)
+    selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
-    question = st.text_input("Ask a question about the document:")
+    question = st.text_input("Vraag maar raak:")
 
     if st.button("Get Answer") and question:
         document_text = extract_text_from_pdf(document_path)

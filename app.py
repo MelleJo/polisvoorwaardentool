@@ -34,6 +34,7 @@ def main():
     # Debug mode toggle using a checkbox
     st.session_state.debug_mode = st.checkbox('Debugmodus', value=False)
 
+
     # User inputs for category and document selection
     categories = get_categories()
     selected_category = st.selectbox("Selecteer een categorie:", categories)

@@ -44,7 +44,7 @@ def main():
 
     question = st.text_input("Vraag maar raak:")
 
-    if st.button("Get Answer") and question:
+    if st.button("Antwoord") and question:
         document_text = extract_text_from_pdf(document_path)
 
         start_time = time.time()

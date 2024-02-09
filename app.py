@@ -31,12 +31,8 @@ def main():
     """Main function for the Streamlit app."""
     st.title("Polisvoorwaardentool - testversie 1.0")
 
-    # Toggle for enabling/disabling debug mode
-    if 'debug_mode' not in st.session_state:
-        st.session_state.debug_mode = False
-
-    if st.button('Schakel debugmodus in/uit'):
-        st.session_state.debug_mode = not st.session_state.debug_mode
+    # Debug mode toggle using a checkbox
+    st.session_state.debug_mode = st.checkbox('Debugmodus', value=False)
 
     # User inputs for category and document selection
     categories = get_categories()
@@ -76,7 +72,7 @@ def debug_information(processing_time, question, document_text, response_text):
     st.subheader("Debug Informatie")
     st.write(f"Vraag: {question}")
     st.write(f"Verwerkingstijd: {processing_time:.2f} seconden")
-    if st.checkbox('Toon documenttekst'):
+    if st.checkbox('Toon documenttekst', value=False):
         st.write(document_text)
     st.write(f"Antwoord: {response_text}")
 

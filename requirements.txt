@@ -7,4 +7,3 @@ langchain_openai
 langchain
 numpy
 sentence-transformers
-flask

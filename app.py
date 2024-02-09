@@ -1,10 +1,9 @@
 import streamlit as st
 import os
+import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
 
-# Adjust the base directory according to your setup
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
@@ -25,8 +24,8 @@ def extract_text_from_pdf(file_path):
     return document_text
 
 def main():
-    st.title("Polisvoorwaardentool - Testversie 1.0")
-    debug_mode = st.checkbox('Debugmodus', value=False)
+    st.title("Polisvoorwaardentool - testversie 1.0")
+    st.session_state.debug_mode = st.checkbox('Debugmodus', value=False)
 
     model_choice = st.selectbox("Kies model versie:", ["ChatGPT 3.5 Turbo", "ChatGPT 4"])
     model_version = "gpt-3.5-turbo" if model_choice == "ChatGPT 3.5 Turbo" else "gpt-4"
@@ -39,28 +38,30 @@ def main():
     document_text = extract_text_from_pdf(document_path)
 
     question = st.text_input("Stel een vraag over het document:")
-
-    if st.button("Krijg Antwoord") and question:
+    if question:
+        start_time = time.time()
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=model_version)
 
-        messages = [
-            SystemMessage(content=document_text),
-            HumanMessage(content=question)
-        ]
-
+        prompt = f"{document_text}\n\nQuestion: {question}"
         try:
-            response = llm.invoke(messages=messages)
+            response = llm.complete(prompt=prompt, max_tokens=512)
             if response:
-                st.write(response[-1].content)  # Assuming the last message is the AI's response
-                if debug_mode:
-                    st.subheader("Debug Informatie")
-                    st.write(f"Vraag: {question}")
-                    if st.checkbox('Toon documenttekst'):
-                        st.write(document_text)
+                processing_time = time.time() - start_time
+                st.write(response.choices[0].text)
+                if st.session_state.debug_mode:
+                    debug_information(processing_time, question, document_text, response.choices[0].text)
             else:
                 st.error("Geen antwoord gegenereerd.")
         except Exception as e:
             st.error(f"Er is een fout opgetreden: {e}")
+
+def debug_information(processing_time, question, document_text, response_text):
+    st.subheader("Debug Informatie")
+    st.write(f"Vraag: {question}")
+    st.write(f"Verwerkingstijd: {processing_time:.2f} seconden")
+    if st.checkbox('Toon documenttekst'):
+        st.write(document_text)
+    st.write(f"Antwoord: {response_text}")
 
 if __name__ == "__main__":
     main()

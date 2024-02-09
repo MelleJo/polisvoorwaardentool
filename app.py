@@ -3,26 +3,15 @@ import os
 import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from flask import send_file
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
     return sorted(next(os.walk(BASE_DIR))[1])
 
-
-
 def get_documents(category):
     category_path = os.path.join(BASE_DIR, category)
-    documents = [doc for doc in os.listdir(category_path) if doc.endswith('.pdf')]
-    return sorted(documents)
-
-@app.route('/download/<category>/<document>')
-def download_document(category, document):
-    document_path = os.path.join(BASE_DIR, category, document)
-    return send_file(document_path, as_attachment=True)
+    return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
 
 def extract_text_from_pdf(file_path):
     document_text = ""
@@ -33,8 +22,6 @@ def extract_text_from_pdf(file_path):
             if text:
                 document_text += text + "\n"
     return document_text
-
-# ...
 
 def main():
     st.title("Polisvoorwaardentool - testversie 1.0")
@@ -50,37 +37,33 @@ def main():
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Selecteer een document:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
-
+    
+    # Document download button
+    if st.button('Download Document'):
+        with open(document_path, "rb") as file:
+            st.download_button(label="Download PDF", data=file, file_name=selected_document, mime='application/pdf')
+    
     question = st.text_input("Stel een vraag over het document:")
-
-    if st.button("Krijg antwoord") and question:
+    if question:
         document_text = extract_text_from_pdf(document_path)
 
         start_time = time.time()
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
 
-        # Format the messages for batch processing
-        batch_messages = [
-            [
-                SystemMessage(content=document_text),
-                HumanMessage(content=question),
-            ],
-        ]
+        # Since batch processing and specific message types might not be directly supported,
+        # consider using a simple prompt for the LLM call.
+        prompt = f"{document_text}\n\nQuestion: {question}"
         try:
-            result = llm.generate(batch_messages)
+            response = llm.complete(prompt=prompt, max_tokens=512)  # Adjust parameters as needed
             
-            # Extracting the first response from the result
-            if result.generations:
-                response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
+            if response:
                 processing_time = time.time() - start_time
-
-                st.write(response)  # Display the answer
+                st.write(response.choices[0].text)  # Display the first choice's text as the answer
 
                 if st.session_state.debug_mode:
                     st.subheader("Debug Informatie")
                     st.write(f"Vraag: {question}")
                     st.write(f"Verwerkingstijd: {processing_time:.2f} seconden")
-                    st.write(f"Tokeengebruik: {result.llm_output['token_usage']}")
                     if st.checkbox('Toon documenttekst'):
                         st.write(document_text)
             else:

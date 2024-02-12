@@ -4,5 +4,5 @@ PyPDF2
 langchain_community
 langchain_openai
 langchain
-chromadb
 sqlite3
+chromadb

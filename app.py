@@ -8,7 +8,7 @@ import chromadb
 
 # Initialize ChromaDB client and create/get a collection for policy documents.
 chroma_client = chromadb.Client()
-collection_name = "Polisvoorwaardentool embeddings"
+collection_name = "Polisvoorwaardentool_embeddings"
 try:
     collection = chroma_client.create_collection(name=collection_name)
 except Exception:

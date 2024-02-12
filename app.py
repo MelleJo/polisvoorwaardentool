@@ -8,18 +8,17 @@ from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 import pickle
-import numpy as np
 
-# Set the base directory for preloaded PDFs
+# Initialize tokenizer and model for embeddings
+tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+
+# Set the base directory for preloaded PDFs and cache directory
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 CACHE_DIR = os.path.join(BASE_DIR, "cache")
 
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
-
-# Initialize tokenizer and model for embeddings
-tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 
 def get_categories():
     return sorted(os.listdir(BASE_DIR))
@@ -78,13 +77,16 @@ def process_pdf(document_path):
 
 def main():
     st.title("Polisvoorwaardentool - Testversie 1.1. - FAISS")
+    
     debug_mode = st.checkbox('Debugmodus', value=False)
     model_choice = st.selectbox("Kies model versie:", ["ChatGPT 3.5 Turbo", "gpt-4-turbo-preview"])
     model_version = "gpt-3.5-turbo" if model_choice == "ChatGPT 3.5 Turbo" else "gpt-4-turbo-preview"
+    
     categories = get_categories()
     selected_category = st.selectbox("Selecteer een categorie:", categories)
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Selecteer een document:", documents)
+    
     question = st.text_input("Stel een vraag over het document:")
     
     if st.button("Krijg Antwoord") and question:

@@ -8,3 +8,6 @@ langchain
 numpy
 sentence-transformers
 langchain-utils
+transformers
+faiss-cpu
+torch

@@ -57,7 +57,7 @@ def extract_text_from_chunk(file_path, chunk_range):
 
 # Main Streamlit app function
 def main():
-    st.title("Polisvoorwaardentool - Testversie 1.0")
+    st.title("Polisvoorwaardentool - Testversie 1.1. - FAISS")
     
     # Debug mode toggle
     debug_mode = st.checkbox('Debugmodus', value=False)

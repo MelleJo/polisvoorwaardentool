@@ -65,19 +65,15 @@ def save_to_cache(document_name, embeddings, index):
 def process_pdf(document_path):
     document_name = os.path.splitext(os.path.basename(document_path))[0]
     if check_cache(document_name):
-        return load_cached_data(document_name)
+        embeddings, index = load_cached_data(document_name)
     else:
         document_text = extract_text_from_pdf(document_path)
-        embeddings = embed_text(document_text)  # This should produce a (n, d) array
-        # Ensure embeddings are in the correct shape (n, d)
-        if len(embeddings.shape) == 1:
-            # If embeddings is a 1D array, reshape it to (1, d)
-            embeddings = embeddings.reshape(1, -1)
+        embeddings = embed_text(document_text)
         dimension = embeddings.shape[1]
         index = faiss.IndexFlatL2(dimension)
-        index.add(embeddings)  # embeddings is now guaranteed to be (n, d)
+        index.add(embeddings)
         save_to_cache(document_name, embeddings, index)
-        return embeddings, index
+    return embeddings, index
 
 def main():
     st.title("Polisvoorwaardentool - Testversie 1.1. - FAISS")
@@ -96,8 +92,26 @@ def main():
     if st.button("Krijg Antwoord") and question:
         document_path = os.path.join(BASE_DIR, selected_category, selected_document)
         embeddings, index = process_pdf(document_path)
-        # Note: Implement logic to use embeddings and index for answering the question
-        # This part of the code is left as an exercise for integration with langchain or your custom logic
+        question_embedding = embed_text(question).reshape(1, -1)
+        
+        # Use FAISS to find the most similar document chunk(s) to the question
+        D, I = index.search(question_embedding, 1)  # Assuming we want the top 1 match
+        
+        if I.size > 0:
+            # Prepare the messages for the chat with LangChain OpenAI
+            llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=model_version)
+            messages = [
+                SystemMessage(content="Analyzing document content based on your question."),
+                HumanMessage(content=question)
+            ]
+            
+            response = llm.invoke(messages)
+            if response:
+                st.write(response.content)
+            else:
+                st.error("Unable to generate an answer. Please try again.")
+        else:
+            st.write("No relevant content found for your question.")
 
 if __name__ == "__main__":
     main()

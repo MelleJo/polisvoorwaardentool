@@ -68,10 +68,14 @@ def process_pdf(document_path):
         return load_cached_data(document_name)
     else:
         document_text = extract_text_from_pdf(document_path)
-        embeddings = embed_text(document_text)
+        embeddings = embed_text(document_text)  # This should produce a (n, d) array
+        # Ensure embeddings are in the correct shape (n, d)
+        if len(embeddings.shape) == 1:
+            # If embeddings is a 1D array, reshape it to (1, d)
+            embeddings = embeddings.reshape(1, -1)
         dimension = embeddings.shape[1]
         index = faiss.IndexFlatL2(dimension)
-        index.add(np.array([embeddings]))
+        index.add(embeddings)  # embeddings is now guaranteed to be (n, d)
         save_to_cache(document_name, embeddings, index)
         return embeddings, index
 

@@ -1,12 +1,20 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
-
+from langchain_openai import OpenAI, Embeddings
+from langchain.chains import LLMChain
+from langchain.document_loaders import LocalDocumentLoader
+from langchain.retrievers import EmbeddingsRetriever
+from langchain.llms import LangChainGPT
 
 # Set the base directory for preloaded PDFs
-BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
+BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardentoolVA")
+
+# Initialize LangChain components
+openai_api = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+embeddings = Embeddings(model="text-embedding-ada-002")
+document_loader = LocalDocumentLoader()
+llm = LangChainGPT(openai_api=openai_api)
 
 # Function to get categories from the base directory
 def get_categories():
@@ -52,31 +60,30 @@ def main():
         document_path = os.path.join(BASE_DIR, selected_category, selected_document)
         document_text = extract_text_from_pdf(document_path)
         
-        # Initialize ChatOpenAI with the selected model
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=model_version)
+        # Load and chunk document, then get embeddings
+        loaded_document = document_loader.load(document_path)
+        chunks = loaded_document.split_to_chunks(max_length=1024, overlap=128)
+        chunk_embeddings = embeddings.embed_documents(chunks)
+
+        # Find the most relevant chunks
+        question_embedding = embeddings.embed_text(question)
+        top_chunks = EmbeddingsRetriever.retrieve_most_relevant(chunk_embeddings, question_embedding, top_k=5)
+
+        # Combine the text of the top chunks for the LLM context
+        combined_context = "\n".join([chunk.text for chunk in top_chunks])
         
+        # Prepare the LLM call
+        response = llm.ask(question, context=combined_context, model_name=model_version)
         
-        # Prepare the messages for the chat
-        messages = [
-            SystemMessage(content="Jij bent een expert in het analyseren van polisvoorwaarden. De gebruiker is een schadebehandelaar en wil graag jouw hulp bij het vinden van specifieke en relevante informatie voor de schadebehandeling van een polis. Nauwkeurigheid is prioriteit nummer 1"),
-            SystemMessage(content=document_text),
-            HumanMessage(content=question)
-        ]
-        
-        # Get the response
-        try:
-            response = llm.invoke(messages)
-            if response:
-                st.write(response.content)
-                if debug_mode:
-                    st.subheader("Debug Informatie")
-                    st.write(f"Vraag: {question}")
-                    if st.checkbox('Toon documenttekst'):
-                        st.write(document_text)
-            else:
-                st.error("Geen antwoord gegenereerd.")
-        except Exception as e:
-            st.error(f"Er is een fout opgetreden: {e}")
+        if response:
+            st.write(response)
+            if debug_mode:
+                st.subheader("Debug Informatie")
+                st.write(f"Vraag: {question}")
+                if st.checkbox('Toon documenttekst'):
+                    st.write(combined_context)
+        else:
+            st.error("Geen antwoord gegenereerd.")
 
 if __name__ == "__main__":
     main()

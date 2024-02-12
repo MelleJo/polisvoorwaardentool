@@ -1,27 +1,18 @@
 import streamlit as st
 import os
 from PyPDF2 import PdfReader
-from transformers import AutoTokenizer, AutoModel
-import faiss
-import numpy as np
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 
-# Set the base directory for preloaded PDFs within the same GitHub repo as app.py
+
+# Set the base directory for preloaded PDFs
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
-# Initialize tokenizer and model for embeddings
-tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-
-# Function to encode text to embeddings
-def encode_text_to_embeddings(text):
-    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
-    outputs = model(**inputs)
-    return outputs.pooler_output.detach().numpy()
-
-# Function to get categories and documents
+# Function to get categories from the base directory
 def get_categories():
     return sorted(os.listdir(BASE_DIR))
 
+# Function to get document names within a selected category
 def get_documents(category):
     category_path = os.path.join(BASE_DIR, category)
     return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
@@ -37,42 +28,55 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
-# Main Streamlit application
+# Main Streamlit app function
 def main():
     st.title("Polisvoorwaardentool - Testversie 1.0")
     
+    # Debug mode toggle
     debug_mode = st.checkbox('Debugmodus', value=False)
-    
+
+    # Model version selection
+    model_choice = st.selectbox("Kies model versie:", ["ChatGPT 3.5 Turbo", "gpt-4-turbo-preview"])
+    model_version = "gpt-3.5-turbo" if model_choice == "ChatGPT 3.5 Turbo" else "gpt-4-turbo-preview"
+
     # Document selection UI
     categories = get_categories()
     selected_category = st.selectbox("Selecteer een categorie:", categories)
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Selecteer een document:", documents)
-    
+        
+    # Question input
     question = st.text_input("Stel een vraag over het document:")
     
     if st.button("Krijg Antwoord") and question:
         document_path = os.path.join(BASE_DIR, selected_category, selected_document)
         document_text = extract_text_from_pdf(document_path)
         
-        # Process the document text into embeddings and create a FAISS index
-        document_embeddings = encode_text_to_embeddings(document_text)
-        dim = document_embeddings.shape[1]
-        index = faiss.IndexFlatL2(dim)
-        index.add(document_embeddings)
+        # Initialize ChatOpenAI with the selected model
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=model_version)
         
-        # Encode the question for similarity search
-        question_embedding = encode_text_to_embeddings(question)
-        _, I = index.search(question_embedding, 1)  # Searching for the top 1 similar chunk
         
-        if debug_mode:
-            st.subheader("Debug Informatie")
-            st.write(f"Vraag: {question}")
-            if st.checkbox('Toon documenttekst'):
-                st.write(document_text)
+        # Prepare the messages for the chat
+        messages = [
+            SystemMessage(content="Jij bent een expert in het analyseren van polisvoorwaarden. De gebruiker is een schadebehandelaar en wil graag jouw hulp bij het vinden van specifieke en relevante informatie voor de schadebehandeling van een polis. Nauwkeurigheid is prioriteit nummer 1"),
+            SystemMessage(content=document_text),
+            HumanMessage(content=question)
+        ]
         
-        # Display a placeholder response or further process I for retrieving the answer
-        st.write("Response placeholder. Further implementation required to display the specific answer.")
+        # Get the response
+        try:
+            response = llm.invoke(messages)
+            if response:
+                st.write(response.content)
+                if debug_mode:
+                    st.subheader("Debug Informatie")
+                    st.write(f"Vraag: {question}")
+                    if st.checkbox('Toon documenttekst'):
+                        st.write(document_text)
+            else:
+                st.error("Geen antwoord gegenereerd.")
+        except Exception as e:
+            st.error(f"Er is een fout opgetreden: {e}")
 
 if __name__ == "__main__":
     main()

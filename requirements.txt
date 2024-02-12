@@ -1,12 +1,6 @@
 streamlit
 openai
 PyPDF2
-faiss-cpu
 langchain_community
 langchain_openai
 langchain
-numpy
-sentence-transformers
-transformers
-faiss-cpu
-torch

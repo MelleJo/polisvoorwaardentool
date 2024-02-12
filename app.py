@@ -2,7 +2,9 @@ import os
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
+import sqlite3
 import chromadb
+
 
 # Initialize ChromaDB client and create/get a collection for policy documents.
 chroma_client = chromadb.Client()

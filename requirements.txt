@@ -5,3 +5,4 @@ langchain_community
 langchain_openai
 langchain
 chromadb == 0.3.29
+sentence_transformers

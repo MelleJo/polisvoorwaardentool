@@ -3,8 +3,18 @@ import streamlit as st
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 import chromadb
+from sentence_transformers import SentenceTransformer
 
+# Load a pre-defined model
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
+def custom_embedding_function(texts):
+    return model.encode(texts, convert_to_tensor=False, show_progress_bar=False).tolist()
+
+# Use this custom embedding function when adding documents
+def add_document_to_chroma_custom_embedding(file_path, document_text):
+    embeddings = custom_embedding_function([document_text])
+    collection.add(embeddings=embeddings, documents=[document_text], ids=[file_path])
 
 # Initialize ChromaDB client and create/get a collection for policy documents.
 chroma_client = chromadb.Client()
@@ -34,8 +44,8 @@ def extract_text_from_pdf(file_path):
     return document_text
 
 def add_document_to_chroma(file_path, document_text):
-    # Add the document to ChromaDB with the file path as the ID.
-    collection.add(documents=[document_text], ids=[file_path])
+    add_document_to_chroma_custom_embedding(file_path, document_text)
+
 
 def query_chroma(question):
     # Query ChromaDB for the most relevant document ID based on the question.

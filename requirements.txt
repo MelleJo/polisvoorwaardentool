@@ -4,3 +4,6 @@ PyPDF2
 langchain_community
 langchain_openai
 langchain
+faiss-cpu
+transformers
+torch

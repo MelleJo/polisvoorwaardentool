@@ -2,7 +2,9 @@ import os
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
-import sqlite3
+import(‘pysqlite3’)
+import sys 
+sys.modules[‘sqlite3’] = sys.modules.pop(‘pysqlite3’)
 import chromadb
 
 

@@ -7,3 +7,5 @@ langchain
 faiss-cpu
 transformers
 torch
+numpy
+pickle

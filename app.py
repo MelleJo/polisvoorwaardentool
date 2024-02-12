@@ -58,7 +58,7 @@ def main():
         
         # Prepare the messages for the chat
         messages = [
-            SystemMessage(content="Jij bent een expert in het analyseren van polisvoorwaarden. De gebruiker is een schadebehandelaar en wil graag jouw hulp bij het vinden van specifieke en relevante informatie voor de schadebehandeling van een polis. Nauwkeurigheid is prioriteit nummer 1")
+            SystemMessage(content="Jij bent een expert in het analyseren van polisvoorwaarden. De gebruiker is een schadebehandelaar en wil graag jouw hulp bij het vinden van specifieke en relevante informatie voor de schadebehandeling van een polis. Nauwkeurigheid is prioriteit nummer 1"),
             SystemMessage(content=document_text),
             HumanMessage(content=question)
         ]

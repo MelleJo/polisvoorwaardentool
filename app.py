@@ -42,6 +42,15 @@ def main():
     selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
+    # Add a download button for the selected PDF document
+    with open(document_path, "rb") as file:
+        st.download_button(
+            label="Download PDF",
+            data=file,
+            file_name=selected_document,
+            mime="application/pdf"
+        )
+
     question = st.text_input("Vraag maar raak:")
 
     if st.button("Antwoord") and question:

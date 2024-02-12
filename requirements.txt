@@ -4,5 +4,4 @@ PyPDF2
 langchain_community
 langchain_openai
 langchain
-chromadb
-pysqlite3-binary
+chromadb == 0.3.29

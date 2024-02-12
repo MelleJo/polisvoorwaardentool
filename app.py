@@ -4,9 +4,7 @@ from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 import chromadb
 
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 
 # Initialize ChromaDB client and create/get a collection for policy documents.
 chroma_client = chromadb.Client()

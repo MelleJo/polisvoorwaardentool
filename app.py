@@ -33,11 +33,11 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
-#def add_document_to_chroma(file_path, document_text):
+def add_document_to_chroma(file_path, document_text):
     # Add the document to ChromaDB with the file path as the ID.
     collection.add(documents=[document_text], ids=[file_path])
 
-#def query_chroma(question):
+def query_chroma(question):
     # Query ChromaDB for the most relevant document ID based on the question.
     results = collection.query(query_texts=[question], n_results=1)
     if results:
@@ -63,7 +63,7 @@ def main():
     
     # Extract and add document text to ChromaDB when selected.
     document_text = extract_text_from_pdf(document_path)
-    #add_document_to_chroma(document_path, document_text)
+    add_document_to_chroma(document_path, document_text)
 
     question = st.text_input("Vraag maar raak:")
     if st.button("Antwoord") and question:

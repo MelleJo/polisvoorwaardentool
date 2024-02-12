@@ -76,9 +76,9 @@ def main():
     question = st.text_input("Stel een vraag over het document:")
 
     if st.button("Krijg Antwoord") and question:
-        # Load FAISS index and document map
-        index_path = "path_to_your_faiss_index"
-        doc_map_path = "path_to_your_document_map"
+        # Define actual paths for FAISS index and document map
+        index_path = os.path.join(BASE_DIR, "faiss_index", "index.faiss")
+        doc_map_path = os.path.join(BASE_DIR, "faiss_index", "doc_map.pkl")
         index, doc_map = load_faiss_index(index_path, doc_map_path)
 
         # Embed the question

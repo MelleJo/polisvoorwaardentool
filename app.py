@@ -63,7 +63,7 @@ def main():
     
     # Extract and add document text to ChromaDB when selected.
     document_text = extract_text_from_pdf(document_path)
-    add_document_to_chroma(document_path, document_text)
+    #add_document_to_chroma(document_path, document_text)
 
     question = st.text_input("Vraag maar raak:")
     if st.button("Antwoord") and question:

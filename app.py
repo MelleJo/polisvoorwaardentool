@@ -4,6 +4,7 @@ from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
+
 # Set the base directory for preloaded PDFs
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
@@ -43,7 +44,7 @@ def main():
     selected_category = st.selectbox("Selecteer een categorie:", categories)
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Selecteer een document:", documents)
-    
+        
     # Question input
     question = st.text_input("Stel een vraag over het document:")
     
@@ -54,8 +55,10 @@ def main():
         # Initialize ChatOpenAI with the selected model
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=model_version)
         
+        
         # Prepare the messages for the chat
         messages = [
+            SystemMessage(content="Jij bent een expert in het analyseren van polisvoorwaarden. De gebruiker is een schadebehandelaar en wil graag jouw hulp bij het vinden van specifieke en relevante informatie voor de schadebehandeling van een polis. Nauwkeurigheid is prioriteit nummer 1")
             SystemMessage(content=document_text),
             HumanMessage(content=question)
         ]

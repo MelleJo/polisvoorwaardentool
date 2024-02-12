@@ -28,7 +28,7 @@ def extract_text_from_pdf(file_path):
 # ...
 
 def main():
-    st.title("Polisvoorwaardentool - stabiele versie 1.0")
+    st.title("Polisvoorwaardentool - stabiele versie 1.1.")
 
     if 'debug_mode' not in st.session_state:
         st.session_state.debug_mode = False

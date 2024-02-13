@@ -64,7 +64,7 @@ def get_answer(document_id, question):
     return response.generations[0][0].text if response.generations else "No response generated."
 
 def main():
-    st.title("Polisvoorwaardentool - stabiele versie 1.1.")
+    st.title("Polisvoorwaardentool - test versie 1.1. - chromadb")
     categories = get_categories()
     selected_category = st.selectbox("Kies een categorie:", categories)
     documents = get_documents(selected_category)

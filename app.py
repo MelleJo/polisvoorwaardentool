@@ -49,7 +49,7 @@ def add_document_to_chroma(file_path, document_text):
 
 def query_chroma(question):
     # Query ChromaDB for the most relevant document ID based on the question.
-    results = collection.query(query_texts=[question], n_results=1)
+    results = collection.query_texts([question], n_results=1)
     if results:
         return results[0]['ids'][0]  # Return the ID of the most relevant document.
     return None

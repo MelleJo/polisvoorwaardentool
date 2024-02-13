@@ -4,13 +4,14 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 import openai
-import pinecone
+from pinecone import Pinecone
 import numpy as np
 
-# Pinecone and OpenAI API initialization
-openai.api_key = "INSERT_OPENAI_API_KEY"
-pinecone.init(api_key="INSERT_PINECONE_API_KEY")
-pinecone_index_name = "INSERT_PINECONE_INDEX_NAME"
+# Retrieve API keys from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+pc = Pinecone(api_key="********-****-****-****-************")
+index = pc.Index("polisvoorwaardentoolindex")
 
 # Check if Pinecone index exists, else create it
 if pinecone_index_name not in pinecone.list_indexes():

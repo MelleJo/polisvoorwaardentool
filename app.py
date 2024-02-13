@@ -1,98 +1,114 @@
-import os
 import streamlit as st
+import os
+import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
-import chromadb
-from sentence_transformers import SentenceTransformer
+import openai
+import pinecone
+import numpy as np
 
-# Initialize the Sentence Transformer model
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# Pinecone and OpenAI API initialization
+openai.api_key = "INSERT_OPENAI_API_KEY"
+pinecone.init(api_key="INSERT_PINECONE_API_KEY")
+pinecone_index_name = "INSERT_PINECONE_INDEX_NAME"
 
-# Custom embedding function using the pre-loaded Sentence Transformer model
-def custom_embedding_function(texts):
-    return model.encode(texts, convert_to_tensor=False, show_progress_bar=False).tolist()
+# Check if Pinecone index exists, else create it
+if pinecone_index_name not in pinecone.list_indexes():
+    pinecone.create_index(pinecone_index_name, dimension=1536, metric='cosine')
+index = pinecone.Index(pinecone_index_name)
 
-# Function to add documents to ChromaDB with custom embeddings
-def add_document_to_chroma_custom_embedding(file_path, document_text):
-    embeddings = custom_embedding_function([document_text])
-    collection.add(embeddings=embeddings, documents=[document_text], ids=[file_path])
+def vectorize_text(text, model="text-embedding-3-small"):
+    response = openai.Embedding.create(
+        input=text,
+        model=model
+    )
+    return response['data'][0]['embedding']
 
-# Initialize ChromaDB client and attempt to create or get a collection
-chroma_client = chromadb.Client()
-collection_name = "Polisvoorwaardentool_embeddings"
-try:
-    collection = chroma_client.create_collection(name=collection_name)
-except Exception:
-    collection = chroma_client.get_collection(name=collection_name)
+def upsert_document_to_pinecone(document_id, text):
+    vector = vectorize_text(text)
+    index.upsert(vectors=[(document_id, vector)])
 
-# Set the base directory to the folder containing your PDFs
-BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
+def query_pinecone(question, top_k=1):
+    question_vector = vectorize_text(question)
+    query_results = index.query(
+        vector=question_vector,
+        top_k=top_k,
+        include_metadata=True
+    )
+    return query_results['matches']
 
-# Verify and potentially correct BASE_DIR
-if not os.path.exists(BASE_DIR):
-    st.error(f"Directory does not exist: {BASE_DIR}")
-else:
-    # Function to get categories based on subdirectories in BASE_DIR
-    def get_categories():
-        return sorted(next(os.walk(BASE_DIR))[1])
+def extract_text_from_pdf(file_path):
+    document_text = ""
+    with open(file_path, 'rb') as file:
+        reader = PdfReader(file)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                document_text += text + "\n"
+    return document_text
 
-    # Function to list documents within a selected category
-    def get_documents(category):
-        category_path = os.path.join(BASE_DIR, category)
-        return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
+def get_categories(BASE_DIR):
+    return sorted(next(os.walk(BASE_DIR))[1])
 
-    # Extract text from a given PDF file path
-    def extract_text_from_pdf(file_path):
-        document_text = ""
-        with open(file_path, 'rb') as file:
-            reader = PdfReader(file)
-            for page in reader.pages:
-                text = page.extract_text()
-                if text:
-                    document_text += text + "\n"
-        return document_text
+def get_documents(BASE_DIR, category):
+    category_path = os.path.join(BASE_DIR, category)
+    return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
 
-    # Wrapper function to add documents to ChromaDB
-    def add_document_to_chroma(file_path, document_text):
-        add_document_to_chroma_custom_embedding(file_path, document_text)
+def main():
+    BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
+    st.title("Polisvoorwaardentool - stabiele versie 1.1.")
+    
+    categories = get_categories(BASE_DIR)
+    selected_category = st.selectbox("Kies een categorie:", categories)
+    documents = get_documents(BASE_DIR, selected_category)
+    selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
+    document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
-    # Query ChromaDB for the most relevant document based on a given question
-    def query_chroma(question):
-        results = collection.query(query_texts=[question], n_results=1)
-        if results and results[0]['matches']:
-            return results[0]['matches'][0]['id']
-        return None
-
-    # Generate an answer from a document based on a given question
-    def get_answer(document_id, question):
-        document_text = extract_text_from_pdf(document_id)
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-        response = llm.generate(
-            SystemMessage(content=document_text),
-            HumanMessage(content=question),
+    with open(document_path, "rb") as file:
+        st.download_button(
+            label="Download PDF",
+            data=file,
+            file_name=selected_document,
+            mime="application/pdf"
         )
-        return response.generations[0][0].text if response.generations else "No response generated."
 
-    def main():
-        st.title("Polisvoorwaardentool - test versie 1.1. - chromadb")
-        categories = get_categories()
-        selected_category = st.selectbox("Kies een categorie:", categories)
-        documents = get_documents(selected_category)
-        selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
-        document_path = os.path.join(BASE_DIR, selected_category, selected_document)
-        
-        # Extract and add document text to ChromaDB
+    question = st.text_input("Vraag maar raak:")
+
+    if st.button("Antwoord") and question:
         document_text = extract_text_from_pdf(document_path)
-        add_document_to_chroma(document_path, document_text)
+        # Vectorize and upsert document text to Pinecone upon first query or when updated
+        upsert_document_to_pinecone(selected_document, document_text)
 
-        question = st.text_input("Vraag maar raak:")
-        if st.button("Antwoord") and question:
-            relevant_document_id = query_chroma(question)
-            if relevant_document_id:
-                answer = get_answer(relevant_document_id, question)
-                st.write(answer)
+        # Query Pinecone for the most relevant document
+        matches = query_pinecone(question)
+        most_relevant_document_id = matches[0]['id'] if matches else None
+
+        if most_relevant_document_id:
+            # Assuming document ID matches the selected document's name
+            llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
+            start_time = time.time()
+            result = llm.generate(
+                [
+                    {
+                        "role": "system",
+                        "content": document_text
+                    },
+                    {
+                        "role": "user",
+                        "content": question
+                    }
+                ]
+            )
+            
+            if result.generations:
+                response = result.generations[0][0].text
+                processing_time = time.time() - start_time
+                st.write(response)
+                st.write(f"Processing Time: {processing_time:.2f} seconds")
             else:
-                st.error("Geen relevante documenten gevonden.")
+                st.error("No response generated.")
+        else:
+            st.error("Could not find a relevant document.")
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()

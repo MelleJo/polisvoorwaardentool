@@ -67,7 +67,7 @@ def get_documents(BASE_DIR, category):
 
 def main():
     BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
-    st.title("Polisvoorwaardentool - stabiele versie 1.1.")
+    st.title("Polisvoorwaardentool - testversie 1.10. - Pinecone vector")
     
     categories = get_categories(BASE_DIR)
     selected_category = st.selectbox("Kies een categorie:", categories)

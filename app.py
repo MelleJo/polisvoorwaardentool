@@ -4,23 +4,23 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 import openai
-from pinecone import Pinecone
+import pinecone
 import numpy as np
 
-# Retrieve API keys from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-pc = Pinecone(api_key="********-****-****-****-************")
-index = pc.Index("polisvoorwaardentoolindex")
-
+# Initialize Pinecone
+pinecone.init(api_key=st.secrets["PINECONE_API_KEY"])
+index_name = "polisvoorwaardentoolindex"
 # Check if Pinecone index exists, else create it
-if pinecone_index_name not in pinecone.list_indexes():
-    pinecone.create_index(pinecone_index_name, dimension=1536, metric='cosine')
-index = pinecone.Index(pinecone_index_name)
+if index_name not in pinecone.list_indexes():
+    pinecone.create_index(index_name, dimension=1536, metric='cosine')
+index = pinecone.Index(index_name)
+
+# OpenAI API key is set from Streamlit secrets for security
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 def vectorize_text(text, model="text-embedding-3-small"):
     response = openai.Embedding.create(
-        input=text,
+        input=[text],
         model=model
     )
     return response['data'][0]['embedding']
@@ -85,7 +85,7 @@ def main():
         most_relevant_document_id = matches[0]['id'] if matches else None
 
         if most_relevant_document_id:
-            # Assuming document ID matches the selected document's name
+            # Generate response using LangChain ChatOpenAI
             llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
             start_time = time.time()
             result = llm.generate(

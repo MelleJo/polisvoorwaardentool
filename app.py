@@ -4,7 +4,7 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 import openai
-import pinecone
+from pinecone-client import pinecone
 import numpy as np
 
 # Initialize Pinecone

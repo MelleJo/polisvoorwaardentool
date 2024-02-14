@@ -4,18 +4,28 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 import openai
-import pinecone 
+from pinecone import Pinecone, ServerlessSpec
 import numpy as np
 
 # Initialize Pinecone
-pinecone.init(api_key=st.secrets["PINECONE_API_KEY"])
+api_key = st.secrets["PINECONE_API_KEY"]
+pc = Pinecone(api_key=api_key)
+
 index_name = "polisvoorwaardentoolindex"
 # Check if Pinecone index exists, else create it
-if index_name not in pinecone.list_indexes():
-    pinecone.create_index(index_name, dimension=1536, metric='cosine')
-index = pinecone.Index(index_name)
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name, 
+        dimension=1536, 
+        metric='cosine',
+        spec=ServerlessSpec(
+            cloud='aws',
+            region='us-west-2'
+        )
+    )
+index = pc.Index(index_name)
 
-# OpenAI API key is set from Streamlit secrets for security
+# Set OpenAI API key from Streamlit secrets for security
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 def vectorize_text(text, model="text-embedding-3-small"):

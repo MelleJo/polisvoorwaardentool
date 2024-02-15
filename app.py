@@ -4,19 +4,22 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 import openai
-import pinecone
+from pinecone import Pinecone
 import numpy as np
 
 # Initialize Pinecone with your Pinecone API key
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-pc = pinecone.Pinecone(api_key=pinecone_api_key)
+api_key = st.secrets["PINECONE_API_KEY"]
+pc = Pinecone(api_key=api_key)
 
 index_name = "polisvoorwaardentoolindex"
-# Check if the Pinecone index exists, else create it
-if index_name not in pinecone.list_indexes().names():
-    pinecone.create_index(name=index_name, dimension=1536, metric='cosine')
-index = pinecone.Index(index_name)
-
+# Use the 'pc' instance to list indexes and check if your index exists
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name, 
+        dimension=1536, 
+        metric='cosine'
+    )
+index = pc.Index(index_name)
 # Set the OpenAI API key for secure access
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 # Initialize the OpenAIEmbeddings model with the OpenAI API key

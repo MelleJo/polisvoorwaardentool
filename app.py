@@ -2,14 +2,14 @@ import streamlit as st
 import os
 import time
 from PyPDF2 import PdfReader
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 import openai
-from pinecone import Pinecone, ServerlessSpec
+import pinecone
 import numpy as np
 
 # Initialize Pinecone
 api_key = st.secrets["PINECONE_API_KEY"]
-pc = Pinecone(api_key=api_key)
+pc = pinecone(api_key=api_key)
 
 index_name = "polisvoorwaardentoolindex"
 # Check if Pinecone index exists, else create it
@@ -18,22 +18,26 @@ if index_name not in pc.list_indexes().names():
         name=index_name, 
         dimension=1536, 
         metric='cosine',
-        spec=ServerlessSpec(
-            cloud='aws',
-            region='us-west-2'
+        spec=(
+            cloud='gcp-starter',
+            region='us-central1',
+            Environment='gcp-starter'
         )
     )
 index = pc.Index(index_name)
 
 # Set OpenAI API key from Streamlit secrets for security
 openai.api_key = st.secrets["OPENAI_API_KEY"]
+embeddings_model = OpenAIEmbeddings(api_key=openai.api_key)
+client = ChatOpenAI()
 
-def vectorize_text(text, model="text-embedding-3-small"):
-    response = openai.Embedding.create(
-        input=[text],
-        model=model
-    )
-    return response['data'][0]['embedding']
+def vectorize_text(text):
+    # Embed a single piece of text using the OpenAIEmbeddings model
+    embedded_query = embeddings_model.embed_query(text)
+    return embedded_query
+
+
+
 
 def upsert_document_to_pinecone(document_id, text):
     vector = vectorize_text(text)
@@ -123,3 +127,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+S

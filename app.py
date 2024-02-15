@@ -7,28 +7,20 @@ import openai
 import pinecone
 import numpy as np
 
-# Initialize Pinecone
-api_key = st.secrets["PINECONE_API_KEY"]
-pc = pinecone(api_key=api_key)
+# Initialize Pinecone with your Pinecone API key
+pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+pinecone.init(api_key=pinecone_api_key)
 
 index_name = "polisvoorwaardentoolindex"
-# Check if Pinecone index exists, else create it
-if index_name not in pc.list_indexes().names():
-    pc.create_index(
-        name=index_name, 
-        dimension=1536, 
-        metric='cosine',
-        spec=(
-            cloud='gcp-starter',
-            region='us-central1',
-            Environment='gcp-starter'
-        )
-    )
-index = pc.Index(index_name)
+# Check if the Pinecone index exists, else create it
+if index_name not in pinecone.list_indexes().names():
+    pinecone.create_index(name=index_name, dimension=1536, metric='cosine')
+index = pinecone.Index(index_name)
 
-# Set OpenAI API key from Streamlit secrets for security
+# Set the OpenAI API key for secure access
 openai.api_key = st.secrets["OPENAI_API_KEY"]
-embeddings_model = OpenAIEmbeddings(api_key=openai.api_key)
+# Initialize the OpenAIEmbeddings model with the OpenAI API key
+embeddings_model = OpenAIEmbeddings(openai_api_key=openai.api_key)
 client = ChatOpenAI()
 
 def vectorize_text(text):

@@ -9,7 +9,7 @@ import numpy as np
 
 # Initialize Pinecone with your Pinecone API key
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-pinecone.init(api_key=pinecone_api_key)
+pc = pinecone.Pinecone(api_key=pinecone_api_key)
 
 index_name = "polisvoorwaardentoolindex"
 # Check if the Pinecone index exists, else create it

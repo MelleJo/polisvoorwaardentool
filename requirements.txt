@@ -7,4 +7,6 @@ langchain
 #chromadb == 0.3.29
 #sentence_transformers
 pinecone-client
+time
+numpyS
 

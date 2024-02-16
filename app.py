@@ -4,32 +4,42 @@ import time
 from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 import openai
-from pinecone import Pinecone
+from pinecone import Pinecone, PodSpec
 import numpy as np
+import time
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
+from langchain.schema import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+
 
 # Initialize Pinecone with your Pinecone API key
 api_key = st.secrets["PINECONE_API_KEY"]
 pc = Pinecone(api_key=api_key)
+spec = PodSpec(
+    environment="gcp-starter"
+)
+index = pc.Index("polisvoorwaardentoolindex")
 
-index_name = "polisvoorwaardentoolindex"
-# Use the 'pc' instance to list indexes and check if your index exists
-if index_name not in pc.list_indexes().names():
-    pc.create_index(
-        name=index_name, 
-        dimension=1536, 
-        metric='cosine'
-    )
-index = pc.Index(index_name)
+
+
 # Set the OpenAI API key for secure access
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 # Initialize the OpenAIEmbeddings model with the OpenAI API key
-embeddings_model = OpenAIEmbeddings(openai_api_key=openai.api_key)
+embeddings_model = OpenAIEmbeddings(api_key=openai.api_key)
 client = ChatOpenAI()
+embed_model = "text-embedding-ada-002"
+
 
 def vectorize_text(text):
-    # Embed a single piece of text using the OpenAIEmbeddings model
-    embedded_query = embeddings_model.embed_query(text)
-    return embedded_query
+    response = openai.Embedding.create(
+        input=[text],
+        model="text-embedding-ada-002"
+    )
+    return response['data'][0]['embedding']
 
 
 
@@ -95,21 +105,15 @@ def main():
 
         if most_relevant_document_id:
             # Generate response using LangChain ChatOpenAI
-            llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-            start_time = time.time()
-            result = llm.generate(
-                [
-                    {
-                        "role": "system",
-                        "content": document_text
-                    },
-                    {
-                        "role": "user",
-                        "content": question
-                    }
-                ]
-            )
+            chat = ChatOpenAI(temperature=0)
+            messages = [
+                SystemMessage(content="Jij beantwoord de vragen van de gebruiker over de polisvoorwaarden"),
+                HumanMessage(content=question)
+            ]
+            chat(messages)
             
+
+        
             if result.generations:
                 response = result.generations[0][0].text
                 processing_time = time.time() - start_time

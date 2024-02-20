@@ -1,128 +1,55 @@
 import streamlit as st
 import os
-import time
-from PyPDF2 import PdfReader
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+import hashlib
+from datetime import datetime
+from langchain.chains import AnalyzeDocumentChain
+from langchain_openai import OpenAIEmbeddings
+import pinecone
 import openai
-from pinecone import Pinecone, PodSpec
-import numpy as np
-import time
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
-from langchain.schema import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-
-# Initialize Pinecone with your Pinecone API key
-api_key = st.secrets["PINECONE_API_KEY"]
-pc = Pinecone(api_key=api_key)
-spec = PodSpec(
-    environment="gcp-starter"
-)
-index = pc.Index("polisvoorwaardentoolindex")
-
-
-
-# Set the OpenAI API key for secure access
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-# Initialize the OpenAIEmbeddings model with the OpenAI API key
+# LangChain and Pinecone initialization (pseudocode for illustrative purposes)
+PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+pinecone.init(api_key=PINECONE_API_KEY, environment="gcp-starter")
+openai.api_key = OPENAI_API_KEY
+index = pinecone.Index("polisvoorwaardentoolindex")
 embeddings_model = OpenAIEmbeddings(api_key=openai.api_key)
-client = ChatOpenAI()
-embed_model = "text-embedding-ada-002"
 
+# Document processing and vectorization using LangChain
+def process_and_vectorize_document(file_path):
+    analyze_document_chain = AnalyzeDocumentChain(...) # Initialize with necessary parameters
+    document_chunks = analyze_document_chain.run(file_path)
+    for chunk in document_chunks:
+        vector = embeddings_model.get_embeddings(chunk)
+        # Upsert each chunk to Pinecone with a unique ID and associated vector
+        chunk_id = hashlib.md5(chunk.encode()).hexdigest()
+        index.upsert(id=chunk_id, vector=vector, metadata={"last_modified": datetime.now().isoformat()})
 
-def vectorize_text(text):
-    response = openai.Embedding.create(
-        input=[text],
-        model="text-embedding-ada-002"
-    )
-    return response['data'][0]['embedding']
+# Query handling with MMR option
+def query_document(question, use_mmr=False):
+    question_vector = embeddings_model.get_embeddings(question)
+    if use_mmr:
+        results = index.query_mmr(question_vector, ...) # Pseudocode for MMR query
+    else:
+        results = index.query(vector=question_vector, top_k=1)
+    return results
 
-
-
-
-def upsert_document_to_pinecone(document_id, text):
-    vector = vectorize_text(text)
-    index.upsert(vectors=[(document_id, vector)])
-
-def query_pinecone(question, top_k=1):
-    question_vector = vectorize_text(question)
-    query_results = index.query(
-        vector=question_vector,
-        top_k=top_k,
-        include_metadata=True
-    )
-    return query_results['matches']
-
-def extract_text_from_pdf(file_path):
-    document_text = ""
-    with open(file_path, 'rb') as file:
-        reader = PdfReader(file)
-        for page in reader.pages:
-            text = page.extract_text()
-            if text:
-                document_text += text + "\n"
-    return document_text
-
-def get_categories(BASE_DIR):
-    return sorted(next(os.walk(BASE_DIR))[1])
-
-def get_documents(BASE_DIR, category):
-    category_path = os.path.join(BASE_DIR, category)
-    return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
-
+# Main application logic
 def main():
-    BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
-    st.title("Polisvoorwaardentool - testversie 1.10. - Pinecone vector")
-    
-    categories = get_categories(BASE_DIR)
-    selected_category = st.selectbox("Kies een categorie:", categories)
-    documents = get_documents(BASE_DIR, selected_category)
-    selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
-    document_path = os.path.join(BASE_DIR, selected_category, selected_document)
+    st.title("Polisvoorwaardentool - Enhanced with LangChain and Pinecone")
+    document_path = st.file_uploader("Upload a document", type=["pdf"])
+    if document_path:
+        document_id = get_md5_hash(document_path.name)
+        process_and_vectorize_document(document_path)
 
-    with open(document_path, "rb") as file:
-        st.download_button(
-            label="Download PDF",
-            data=file,
-            file_name=selected_document,
-            mime="application/pdf"
-        )
-
-    question = st.text_input("Vraag maar raak:")
-
-    if st.button("Antwoord") and question:
-        document_text = extract_text_from_pdf(document_path)
-        # Vectorize and upsert document text to Pinecone upon first query or when updated
-        upsert_document_to_pinecone(selected_document, document_text)
-
-        # Query Pinecone for the most relevant document
-        matches = query_pinecone(question)
-        most_relevant_document_id = matches[0]['id'] if matches else None
-
-        if most_relevant_document_id:
-            # Generate response using LangChain ChatOpenAI
-            chat = ChatOpenAI(temperature=0)
-            messages = [
-                SystemMessage(content="Jij beantwoord de vragen van de gebruiker over de polisvoorwaarden"),
-                HumanMessage(content=question)
-            ]
-            chat(messages)
-            
-
-        
-            if result.generations:
-                response = result.generations[0][0].text
-                processing_time = time.time() - start_time
-                st.write(response)
-                st.write(f"Processing Time: {processing_time:.2f} seconds")
+        question = st.text_input("Enter your query:")
+        use_mmr = st.checkbox("Diversify results", value=False)
+        if question and st.button("Search"):
+            result_id = query_document(question, use_mmr=use_mmr)
+            if result_id:
+                st.success(f"Document ID {result_id} is the most relevant.")
             else:
-                st.error("No response generated.")
-        else:
-            st.error("Could not find a relevant document.")
+                st.error("No relevant document found.")
 
 if __name__ == "__main__":
     main()

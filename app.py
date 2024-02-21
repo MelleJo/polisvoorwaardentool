@@ -1,19 +1,46 @@
 import streamlit as st
-import os
-import hashlib
 from datetime import datetime
+import hashlib
 from langchain.chains import AnalyzeDocumentChain
-from langchain_openai import OpenAIEmbeddings
-import pinecone
+from langchain.openai import OpenAIEmbeddings
+from pinecone import Pinecone, ServerlessSpec
 import openai
 
-# LangChain and Pinecone initialization (pseudocode for illustrative purposes)
+# Configuration details from Streamlit secrets or environment variables
 PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-pinecone.init(api_key=PINECONE_API_KEY, environment="gcp-starter")
 openai.api_key = OPENAI_API_KEY
-index = pinecone.Index("polisvoorwaardentoolindex")
-embeddings_model = OpenAIEmbeddings(api_key=openai.api_key)
+
+# Pinecone client initialization
+pc = Pinecone(api_key=PINECONE_API_KEY)
+
+# Your Pinecone index specifics
+index_name = "polisvoorwaardentoolindex"
+dimension = 1536  # Your index dimension
+metric = 'cosine'  # Metric used in your index
+
+# Ensure the index exists or create it
+#if index_name not in pc.list_indexes().names:
+    #pc.create_index(
+        #name=index_name,
+      #  dimension=dimension,
+       # metric=metric,
+      #  spec=(
+        #    cloud='gcp',
+       #     region='us-central1',  # Iowa
+      #  )
+ #   )
+
+# Obtain a handle to your index
+index = pc.Index(index_name)
+
+# LangChain OpenAI embeddings initialization
+embeddings_model = OpenAIEmbeddings(api_key=OPENAI_API_KEY, model_name="gpt-3.5-turbo")
+
+def get_md5_hash(text):
+    """Generate MD5 hash for a given text."""
+    return hashlib.md5(text.encode()).hexdigest()
+
 
 # Document processing and vectorization using LangChain
 def process_and_vectorize_document(file_path):

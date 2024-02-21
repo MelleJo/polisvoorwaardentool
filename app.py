@@ -44,7 +44,8 @@ def get_md5_hash(text):
 
 # Document processing and vectorization using LangChain
 def process_and_vectorize_document(file_path):
-    analyze_document_chain = AnalyzeDocumentChain(...) # Initialize with necessary parameters
+    analyze_document_chain = AnalyzeDocumentChain(embeddings=embeddings_model)
+ # Initialize with necessary parameters
     document_chunks = analyze_document_chain.run(file_path)
     for chunk in document_chunks:
         vector = embeddings_model.get_embeddings(chunk)

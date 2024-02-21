@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 import hashlib
 from langchain.chains import AnalyzeDocumentChain
-from langchain.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from pinecone import Pinecone, ServerlessSpec
 import openai
 

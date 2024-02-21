@@ -8,5 +8,5 @@ langchain
 #sentence_transformers
 pinecone-client
 time
-numpyS
+numpy
 

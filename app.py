@@ -3,6 +3,7 @@ from datetime import datetime
 import hashlib
 from langchain.chains import AnalyzeDocumentChain
 from langchain_openai import OpenAIEmbeddings
+from langchain_core.chains.combine_documents import CombineDocumentsChain
 from pinecone import Pinecone, ServerlessSpec
 import openai
 
@@ -44,14 +45,14 @@ def get_md5_hash(text):
 
 # Document processing and vectorization using LangChain
 def process_and_vectorize_document(file_path):
-    analyze_document_chain = AnalyzeDocumentChain(embeddings=embeddings_model)
- # Initialize with necessary parameters
+    combine_chain = CombineDocumentsChain(embeddings=embeddings_model)
+    analyze_document_chain = AnalyzeDocumentChain(combine_chain=combine_chain)
     document_chunks = analyze_document_chain.run(file_path)
     for chunk in document_chunks:
         vector = embeddings_model.get_embeddings(chunk)
-        # Upsert each chunk to Pinecone with a unique ID and associated vector
         chunk_id = hashlib.md5(chunk.encode()).hexdigest()
         index.upsert(id=chunk_id, vector=vector, metadata={"last_modified": datetime.now().isoformat()})
+
 
 # Query handling with MMR option
 def query_document(question, use_mmr=False):

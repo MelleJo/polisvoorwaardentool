@@ -25,15 +25,16 @@ def get_documents(category):
     category_path = os.path.join(BASE_DIR, category)
     return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
 
-def extract_text_from_pdf(file_path):
-    document_text = ""
+def extract_text_from_pdf_by_page(file_path):
+    pages_text = []
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         for page in reader.pages:
             text = page.extract_text()
             if text:
-                document_text += text + "\n"
-    return document_text
+                pages_text.append(text)
+    return pages_text
+
 
 def main():
     st.title("Polisvoorwaardentool - verbeterde versie met FAISS")
@@ -52,29 +53,26 @@ def main():
     with open(document_path, "rb") as file:
         st.download_button(label="Download PDF", data=file, file_name=selected_document, mime="application/pdf")
 
-    document_text = extract_text_from_pdf(document_path)  # Corrected to use document_path
+    # Extract text from each page of the PDF
+    document_pages = extract_text_from_pdf_by_page(document_path)
 
-    
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-      )
-    chunks = text_splitter.split_text(document_text)
-
-    # create embeddings
+    # Create embeddings for each page, assuming you adapt FAISS to handle this appropriately
     embeddings = OpenAIEmbeddings()
-    knowledge_base = FAISS.from_texts(chunks, embeddings)
+    knowledge_base = FAISS.from_texts(document_pages, embeddings)
+
     
     # show user input
     user_question = st.text_input("Ask a question about your PDF:")
     
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
-        # Temporarily print the attributes of the first document to find out its structure
-        # Corrected to use 'page_content' attribute for accessing the document text
+        # Example modification to include page references, adapt based on your actual data structure
         document_text = " ".join([doc.page_content for doc in docs])
+        references = [f"Reference found on page {idx+1}" for idx, doc in enumerate(docs)]  # Simple example, adjust as needed
+
+         # Display references for user information (optional, for debugging)
+        for ref in references:
+            st.write(ref)
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
 
 

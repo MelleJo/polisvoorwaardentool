@@ -50,11 +50,8 @@ def main():
     with open(document_path, "rb") as file:
         st.download_button(label="Download PDF", data=file, file_name=selected_document, mime="application/pdf")
 
-    if pdf is not None:
-        pdf_reader = PdfReader(pdf)
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text()
+    document_text = extract_text_from_pdf(document_path)  # Corrected to use document_path
+
     
     text_splitter = CharacterTextSplitter(
         separator="\n",
@@ -62,7 +59,7 @@ def main():
         chunk_overlap=200,
         length_function=len
       )
-    chunks = text_splitter.split_text(text)
+    chunks = text_splitter.split_text(document_text)
 
     # create embeddings
     embeddings = OpenAIEmbeddings()

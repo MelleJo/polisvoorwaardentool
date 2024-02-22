@@ -75,7 +75,7 @@ def main():
         # Temporarily print the attributes of the first document to find out its structure
         # Corrected to use 'page_content' attribute for accessing the document text
         document_text = " ".join([doc.page_content for doc in docs])
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
 
 
         batch_messages = [

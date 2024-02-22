@@ -2,9 +2,13 @@ import streamlit as st
 import os
 from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.llms import OpenAI
 from langchain.chains import AnalyzeDocumentChain
+from langchain.callbacks import get_openai_callback
+from langchain.chains.question_answering import load_qa_chain
+
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
@@ -41,28 +45,40 @@ def main():
     selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
+    pdf = selected_document
+
     with open(document_path, "rb") as file:
         st.download_button(label="Download PDF", data=file, file_name=selected_document, mime="application/pdf")
 
-    question = st.text_input("Vraag maar raak:")
+    if pdf is not None:
+        pdf_reader = PdfReader(pdf)
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text()
     
-    if st.button("Antwoord") and question:
-        document_text = extract_text_from_pdf(document_path)
+    text_splitter = CharacterTextSplitter(
+        separator="\n",
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len
+      )
+    chunks = text_splitter.split_text(text)
+
+    # create embeddings
+    embeddings = OpenAIEmbeddings()
+    knowledge_base = FAISS.from_texts(chunks, embeddings)
+    
+    # show user input
+    user_question = st.text_input("Ask a question about your PDF:")
+    if user_question:
+        docs = knowledge_base.similarity_search(user_question)
         
-        # Note: For actual usage, consider pre-processing your PDFs and storing their embeddings in FAISS.
-        # Dynamically processing and embedding documents on each query can be inefficient for larger documents.
-        
-        embeddings = OpenAIEmbeddings(api_key=st.secrets["OPENAI_API_KEY"])
-        # Initialize FAISS vector store - this should ideally be done outside this function for efficiency
-        vector_store = FAISS(dimension=embeddings.embedding_dimension)
-        document_chunks = [document_text]  # Simplified to use the whole text as a single chunk for accuracy
-        vector_store.add_texts(document_chunks, embeddings)
-        
-        # Assume direct usage of the document text for answering the question due to accuracy concerns
-        llm = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        analyze_document_chain = AnalyzeDocumentChain(llm=llm)
-        response = analyze_document_chain.run(input_document=document_text, question=question)
-        
+        llm = OpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
+        chain = load_qa_chain(llm, chain_type="stuff")
+        with get_openai_callback() as cb:
+          response = chain.run(input_documents=docs, question=user_question)
+          print(cb)
+           
         st.write(response)
 
 if __name__ == "__main__":

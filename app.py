@@ -75,7 +75,7 @@ def main():
         # Temporarily print the attributes of the first document to find out its structure
         # Corrected to use 'page_content' attribute for accessing the document text
         document_text = " ".join([doc.page_content for doc in docs])
-
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
 
 
         batch_messages = [
@@ -85,14 +85,20 @@ def main():
             ],
         ]
 
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-
         try:
             result = llm.generate(batch_messages)
-            # Process the result as in your stable version
+            
+            # Extracting the first response from the result
+            if result.generations:
+                response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
+                
+                st.write(response)  # Display the answer
+        
+            else:
+                st.error("No response generated.")
         except Exception as e:
             st.error(f"An error occurred: {e}")
-
+        
             
 if __name__ == "__main__":
     main()

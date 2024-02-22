@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import time
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS

@@ -68,7 +68,8 @@ def main():
         docs = knowledge_base.similarity_search(user_question)
         # Example modification to include page references, adapt based on your actual data structure
         document_text = " ".join([doc.page_content for doc in docs])
-        references = [f"Reference found on page {idx+1}" for idx, doc in enumerate(docs)]  # Simple example, adjust as needed
+        references = [f"Reference found on page {idx+1}" for idx, doc in enumerate(docs)]
+
 
          # Display references for user information (optional, for debugging)
         for ref in references:

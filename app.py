@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import time
 from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
@@ -8,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import AnalyzeDocumentChain
 from langchain.callbacks import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
@@ -67,16 +69,31 @@ def main():
     
     # show user input
     user_question = st.text_input("Ask a question about your PDF:")
+    
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
         
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-        chain = load_qa_chain(llm, chain_type="stuff")
-        with get_openai_callback() as cb:
-          response = chain.run(input_documents=docs, question=user_question)
-          print(cb)
-           
-        st.write(response)
+        batch_messages = [
+            [
+                SystemMessage(content=docs),
+                HumanMessage(content=user_question),
+            ],
+        ]
+        try:
+            result = llm.generate(batch_messages)
+              # Extracting the first response from the result
+            if result.generations:
+                response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
+                
+                st.write(response)  # Display the answer
 
+                
+            else:
+                st.error("No response generated.")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
+            
 if __name__ == "__main__":
     main()

@@ -4,7 +4,7 @@ from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
-from langchain.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.chains import AnalyzeDocumentChain
 from langchain.callbacks import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
@@ -70,7 +70,7 @@ def main():
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
         
-        llm = OpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
         chain = load_qa_chain(llm, chain_type="stuff")
         with get_openai_callback() as cb:
           response = chain.run(input_documents=docs, question=user_question)

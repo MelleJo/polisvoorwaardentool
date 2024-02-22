@@ -73,22 +73,19 @@ def main():
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
         
+        # Adjusting the call to match the expected input format for the OpenAI Chat API.
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-        batch_messages = [
-            [
-                SystemMessage(content=docs),
-                HumanMessage(content=user_question),
-            ],
-        ]
+        
+        # Prepare the prompt in a way that is compatible with ChatGPT or GPT models.
+        prompt = f"Based on the following documents: {docs}\n\nQ: {user_question}\nA:"
+        
         try:
-            result = llm.generate(batch_messages)
-              # Extracting the first response from the result
-            if result.generations:
-                response = result.generations[0][0].text  # Assuming the first generation of the first batch is what we want
-                
-                st.write(response)  # Display the answer
-
-                
+            # Adjusting the generate call to use a simple prompt instead of batch_messages
+            response = llm.generate(prompt=prompt, max_tokens=250)  # Adjust max_tokens as needed
+            
+            # Displaying the response
+            if response:
+                st.write(response.text)  # Assuming .text will access the generated text
             else:
                 st.error("No response generated.")
         except Exception as e:

@@ -1,84 +1,76 @@
 import streamlit as st
-from datetime import datetime
-import hashlib
-from langchain.chains import AnalyzeDocumentChain
-from langchain_openai import OpenAIEmbeddings
-from langchain_core.chains.combine_documents import CombineDocumentsChain
-from pinecone import Pinecone, ServerlessSpec
-import openai
+import os
+import time
+from PyPDF2 import PdfReader
+from dotenv import load_dotenv
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.llms import OpenAI
+from langchain.chains.question_answering import load_qa_chain
 
-# Configuration details from Streamlit secrets or environment variables
-PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-openai.api_key = OPENAI_API_KEY
+BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardentoolVA")
 
-# Pinecone client initialization
-pc = Pinecone(api_key=PINECONE_API_KEY)
+def get_categories():
+    return sorted(next(os.walk(BASE_DIR))[1])
 
-# Your Pinecone index specifics
-index_name = "polisvoorwaardentoolindex"
-dimension = 1536  # Your index dimension
-metric = 'cosine'  # Metric used in your index
+def get_documents(category):
+    category_path = os.path.join(BASE_DIR, category)
+    return sorted([doc for doc in os.listdir(category_path) if doc.endswith('.pdf')])
 
-# Ensure the index exists or create it
-#if index_name not in pc.list_indexes().names:
-    #pc.create_index(
-        #name=index_name,
-      #  dimension=dimension,
-       # metric=metric,
-      #  spec=(
-        #    cloud='gcp',
-       #     region='us-central1',  # Iowa
-      #  )
- #   )
+def extract_text_from_pdf(file_path):
+    document_text = ""
+    with open(file_path, 'rb') as file:
+        reader = PdfReader(file)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                document_text += text + "\n"
+    return document_text
 
-# Obtain a handle to your index
-index = pc.Index(index_name)
+def split_and_embed_text(document_text):
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200, length_function=len)
+    chunks = text_splitter.split_text(document_text)
+    
+    embeddings = OpenAIEmbeddings(api_key=st.secrets["OPENAI_API_KEY"])
+    vector_store = FAISS(dimension=embeddings.embedding_dimension)
+    vector_store.add_texts(chunks, embeddings)
+    return vector_store
 
-# LangChain OpenAI embeddings initialization
-embeddings_model = OpenAIEmbeddings(api_key=OPENAI_API_KEY, model_name="gpt-3.5-turbo")
-
-def get_md5_hash(text):
-    """Generate MD5 hash for a given text."""
-    return hashlib.md5(text.encode()).hexdigest()
-
-
-# Document processing and vectorization using LangChain
-def process_and_vectorize_document(file_path):
-    combine_chain = CombineDocumentsChain(embeddings=embeddings_model)
-    analyze_document_chain = AnalyzeDocumentChain(combine_chain=combine_chain)
-    document_chunks = analyze_document_chain.run(file_path)
-    for chunk in document_chunks:
-        vector = embeddings_model.get_embeddings(chunk)
-        chunk_id = hashlib.md5(chunk.encode()).hexdigest()
-        index.upsert(id=chunk_id, vector=vector, metadata={"last_modified": datetime.now().isoformat()})
-
-
-# Query handling with MMR option
-def query_document(question, use_mmr=False):
-    question_vector = embeddings_model.get_embeddings(question)
-    if use_mmr:
-        results = index.query_mmr(question_vector, ...) # Pseudocode for MMR query
-    else:
-        results = index.query(vector=question_vector, top_k=1)
-    return results
-
-# Main application logic
 def main():
-    st.title("Polisvoorwaardentool - Enhanced with LangChain and Pinecone")
-    document_path = st.file_uploader("Upload a document", type=["pdf"])
-    if document_path:
-        document_id = get_md5_hash(document_path.name)
-        process_and_vectorize_document(document_path)
+    st.title("Polisvoorwaardentool - verbeterde versie met FAISS")
 
-        question = st.text_input("Enter your query:")
-        use_mmr = st.checkbox("Diversify results", value=False)
-        if question and st.button("Search"):
-            result_id = query_document(question, use_mmr=use_mmr)
-            if result_id:
-                st.success(f"Document ID {result_id} is the most relevant.")
-            else:
-                st.error("No relevant document found.")
+    categories = get_categories()
+    selected_category = st.selectbox("Kies een categorie:", categories)
+    documents = get_documents(selected_category)
+    selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
+    document_path = os.path.join(BASE_DIR, selected_category, selected_document)
+
+    with open(document_path, "rb") as file:
+        st.download_button(
+            label="Download PDF",
+            data=file,
+            file_name=selected_document,
+            mime="application/pdf"
+        )
+
+    question = st.text_input("Vraag maar raak:")
+    
+    if st.button("Antwoord") and question:
+        document_text = extract_text_from_pdf(document_path)
+        vector_store = split_and_embed_text(document_text)
+        
+        # Find most relevant chunks
+        docs = vector_store.similarity_search(question, top_k=5)  # Adjust top_k as needed
+        
+        llm = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        chain = load_qa_chain(llm, chain_type="map_reduce")
+        
+        # Assuming docs are the indices of the chunks
+        relevant_chunks = [document_text[doc["id"]] for doc in docs]  # Adjust indexing as needed
+        response = chain.run(input_documents=relevant_chunks, question=question)
+        
+        st.write(response)
 
 if __name__ == "__main__":
     main()

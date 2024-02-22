@@ -1,17 +1,19 @@
 import streamlit as st
 import os
-import time
 from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.llms import OpenAI
-from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import AnalyzeDocumentChain
 
-BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardentoolVA")
+BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_categories():
-    return sorted(next(os.walk(BASE_DIR))[1])
+    try:
+        return sorted(next(os.walk(BASE_DIR))[1])
+    except StopIteration:
+        st.error(f"Failed to access categories in {BASE_DIR}. Check if the directory exists and is not empty.")
+        return []
 
 def get_documents(category):
     category_path = os.path.join(BASE_DIR, category)
@@ -27,47 +29,39 @@ def extract_text_from_pdf(file_path):
                 document_text += text + "\n"
     return document_text
 
-def split_and_embed_text(document_text):
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200, length_function=len)
-    chunks = text_splitter.split_text(document_text)
-    
-    embeddings = OpenAIEmbeddings(api_key=st.secrets["OPENAI_API_KEY"])
-    vector_store = FAISS(dimension=embeddings.embedding_dimension)
-    vector_store.add_texts(chunks, embeddings)
-    return vector_store
-
 def main():
     st.title("Polisvoorwaardentool - verbeterde versie met FAISS")
 
     categories = get_categories()
+    if not categories:
+        return  # Stop further execution if no categories found
+    
     selected_category = st.selectbox("Kies een categorie:", categories)
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
     with open(document_path, "rb") as file:
-        st.download_button(
-            label="Download PDF",
-            data=file,
-            file_name=selected_document,
-            mime="application/pdf"
-        )
+        st.download_button(label="Download PDF", data=file, file_name=selected_document, mime="application/pdf")
 
     question = st.text_input("Vraag maar raak:")
     
     if st.button("Antwoord") and question:
         document_text = extract_text_from_pdf(document_path)
-        vector_store = split_and_embed_text(document_text)
         
-        # Find most relevant chunks
-        docs = vector_store.similarity_search(question, top_k=5)  # Adjust top_k as needed
+        # Note: For actual usage, consider pre-processing your PDFs and storing their embeddings in FAISS.
+        # Dynamically processing and embedding documents on each query can be inefficient for larger documents.
         
+        embeddings = OpenAIEmbeddings(api_key=st.secrets["OPENAI_API_KEY"])
+        # Initialize FAISS vector store - this should ideally be done outside this function for efficiency
+        vector_store = FAISS(dimension=embeddings.embedding_dimension)
+        document_chunks = [document_text]  # Simplified to use the whole text as a single chunk for accuracy
+        vector_store.add_texts(document_chunks, embeddings)
+        
+        # Assume direct usage of the document text for answering the question due to accuracy concerns
         llm = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        chain = load_qa_chain(llm, chain_type="map_reduce")
-        
-        # Assuming docs are the indices of the chunks
-        relevant_chunks = [document_text[doc["id"]] for doc in docs]  # Adjust indexing as needed
-        response = chain.run(input_documents=relevant_chunks, question=question)
+        analyze_document_chain = AnalyzeDocumentChain(llm=llm)
+        response = analyze_document_chain.run(input_document=document_text, question=question)
         
         st.write(response)
 

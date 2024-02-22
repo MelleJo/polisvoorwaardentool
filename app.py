@@ -72,7 +72,11 @@ def main():
     
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
-        document_text = " ".join([doc.text for doc in docs])  # Adjust according to the actual structure of `docs`
+        # Temporarily print the attributes of the first document to find out its structure
+        if docs:
+            first_doc = docs[0]
+            st.write(dir(first_doc))  # This will list all attributes and methods of the object
+
 
         batch_messages = [
             [

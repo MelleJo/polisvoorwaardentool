@@ -72,22 +72,20 @@ def main():
     
     if user_question:
         docs = knowledge_base.similarity_search(user_question)
-        
-        # Adjusting the call to match the expected input format for the OpenAI Chat API.
+        document_text = " ".join([doc.text for doc in docs])  # Adjust according to the actual structure of `docs`
+
+        batch_messages = [
+            [
+            SystemMessage(content=document_text),
+            HumanMessage(content=user_question),
+            ],
+        ]
+
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview")
-        
-        # Prepare the prompt in a way that is compatible with ChatGPT or GPT models.
-        prompt = f"Based on the following documents: {docs}\n\nQ: {user_question}\nA:"
-        
+
         try:
-            # Adjusting the generate call to use a simple prompt instead of batch_messages
-            response = llm.generate(prompt=prompt, max_tokens=250)  # Adjust max_tokens as needed
-            
-            # Displaying the response
-            if response:
-                st.write(response.text)  # Assuming .text will access the generated text
-            else:
-                st.error("No response generated.")
+            result = llm.generate(batch_messages)
+            # Process the result as in your stable version
         except Exception as e:
             st.error(f"An error occurred: {e}")
 

@@ -1,15 +1,10 @@
 import streamlit as st
 import os
-import time
 from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import ChatOpenAI
-from langchain.chains import AnalyzeDocumentChain
-from langchain_community.callbacks import get_openai_callback
-from langchain.chains.question_answering import load_qa_chain
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain.callbacks import get_openai_callback
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
@@ -39,58 +34,55 @@ def main():
 
     categories = get_categories()
     if not categories:
-        return  # Stop verdere uitvoering als er geen categorieën gevonden zijn
+        return
     
     selected_category = st.selectbox("Kies een categorie:", categories)
     documents = get_documents(selected_category)
     selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
     document_path = os.path.join(BASE_DIR, selected_category, selected_document)
 
-    pdf = selected_document
-
     with open(document_path, "rb") as file:
         st.download_button(label="Download PDF", data=file, file_name=selected_document, mime="application/pdf")
 
-    # Tekst uit elke pagina van de PDF extraheren
     document_pages = extract_text_from_pdf_by_page(document_path)
 
-    # Maak embeddings voor elke pagina, aannemend dat je FAISS dienovereenkomstig aanpast
     embeddings = OpenAIEmbeddings()
     knowledge_base = FAISS.from_texts(document_pages, embeddings)
 
-    # Toon gebruikersinvoer
     user_question = st.text_input("Stel een vraag over uw PDF:")
     
     if user_question:
-        docs = knowledge_base.similarity_search(user_question)
-        document_text = " ".join([doc.page_content for doc in docs])
-        references = [f"Referentie gevonden op pagina {idx+1}" for idx, doc in enumerate(docs)]
+        with get_openai_callback() as cb:
+            docs = knowledge_base.similarity_search(user_question)
+            document_text = " ".join([doc.page_content for doc in docs])
+            references = [f"Referentie gevonden op pagina {idx+1}" for idx, doc in enumerate(docs)]
 
-        # Referenties weergeven voor gebruikersinformatie (optioneel, voor debuggen)
-        for ref in references:
-            st.write(ref)
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
+            for ref in references:
+                st.write(ref)
 
-        batch_messages = [
-            [
-            SystemMessage(content=document_text),
-            HumanMessage(content=user_question),
-            ],
-        ]
+            llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
 
-        try:
+            batch_messages = [
+                [
+                SystemMessage(content=document_text),
+                HumanMessage(content=user_question),
+                ],
+            ]
+
             result = llm.generate(batch_messages)
-            
-            # Het eerste antwoord uit het resultaat halen
+
             if result.generations:
-                response = result.generations[0][0].text  # Aannemend dat de eerste generatie van de eerste batch is wat we willen
-                
-                st.write(response)  # Het antwoord weergeven
-        
+                response = result.generations[0][0].text
+                st.write(response)
             else:
                 st.error("Geen antwoord gegenereerd.")
-        except Exception as e:
-            st.error(f"Een fout is opgetreden: {e}")
-        
+
+        # Display token usage
+        st.write(f"Totaal gebruikte tokens: {cb.total_tokens}")
+        st.write(f"Prompt tokens: {cb.prompt_tokens}")
+        st.write(f"Completion tokens: {cb.completion_tokens}")
+        st.write(f"Totaal aantal succesvolle verzoeken: {cb.successful_requests}")
+        st.write(f"Totale kosten (USD): ${cb.total_cost:.6f}")
+
 if __name__ == "__main__":
     main()

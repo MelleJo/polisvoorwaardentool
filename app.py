@@ -61,10 +61,11 @@ def main():
         document_text = " ".join([doc.page_content for doc in docs])
 
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
+        custom_prompt = f"Start elk antwoord met het woord prompt geladen, antwoord: ... . Jij bent expert in polisvoorwaarden en schadebehandeling. Neem de volgende tekst uit de polisvoorwaarden: '{document_text}', en beantwoord de vraag van de gebruiker van de schadeafdeling. Vraag van de gebruiker:'{user_question}'"
 
         batch_messages = [
             [
-            SystemMessage(content=document_text),
+            SystemMessage(content=custom_prompt),
             HumanMessage(content=user_question),
             ],
         ]

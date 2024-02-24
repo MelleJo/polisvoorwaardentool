@@ -1,4 +1,3 @@
-import streamlit as st
 import os
 import time
 from PyPDF2 import PdfReader
@@ -60,10 +59,19 @@ def main():
         with get_openai_callback() as cb:
             docs = knowledge_base.similarity_search(user_question)
             document_text = " ".join([doc.page_content for doc in docs])
-            references = [f"Referentie gevonden op pagina {idx+1}" for idx, doc in enumerate(docs)]
 
-            for ref in references:
-                st.write(ref)
+            # Using an expander to display references
+            with st.expander("Referenties en Token Informatie"):
+                references = [f"Referentie gevonden op pagina {idx+1}" for idx, doc in enumerate(docs)]
+                for ref in references:
+                    st.write(ref)
+                
+                # Display token usage within the expander
+                st.write(f"Totaal gebruikte tokens: {cb.total_tokens}")
+                st.write(f"Prompt tokens: {cb.prompt_tokens}")
+                st.write(f"Completion tokens: {cb.completion_tokens}")
+                st.write(f"Totaal aantal succesvolle verzoeken: {cb.successful_requests}")
+                st.write(f"Totale kosten (USD): ${cb.total_cost:.6f}")
 
             llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
 
@@ -81,13 +89,6 @@ def main():
                 st.write(response)
             else:
                 st.error("Geen antwoord gegenereerd.")
-
-        # Display token usage
-        st.write(f"Totaal gebruikte tokens: {cb.total_tokens}")
-        st.write(f"Prompt tokens: {cb.prompt_tokens}")
-        st.write(f"Completion tokens: {cb.completion_tokens}")
-        st.write(f"Totaal aantal succesvolle verzoeken: {cb.successful_requests}")
-        st.write(f"Totale kosten (USD): ${cb.total_cost:.6f}")
 
 if __name__ == "__main__":
     main()

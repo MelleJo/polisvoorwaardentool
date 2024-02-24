@@ -80,7 +80,7 @@ def main():
 
     if selection_method == 'Zoek een document':
         search_query = st.text_input("Zoek naar een polisvoorwaardendocument:", "")
-        if st.button("Zoeken") and search_query:
+        if search_query:
             all_documents = get_all_documents()
             search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
             if search_results:

@@ -37,7 +37,7 @@ def extract_text_from_pdf_by_page(file_path):
 
 
 def main():
-    st.title("Polisvoorwaardentool - verbeterde versie met FAISS")
+    st.title("Polisvoorwaardentool - testversie 1.1. (FAISS)")
 
     categories = get_categories()
     if not categories:

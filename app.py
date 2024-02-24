@@ -57,11 +57,29 @@ def main():
     user_question = st.text_input("Stel een vraag over uw PDF:")
     
     if user_question:
-        with get_openai_callback() as cb:
-            docs = knowledge_base.similarity_search(user_question)
-            document_text = " ".join([doc.page_content for doc in docs])
+        docs = knowledge_base.similarity_search(user_question)
+        document_text = " ".join([doc.page_content for doc in docs])
 
-            # Using an expander to display references
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
+
+        batch_messages = [
+            [
+            SystemMessage(content=document_text),
+            HumanMessage(content=user_question),
+            ],
+        ]
+
+        # Attempt token tracking specifically around the generate call
+        with get_openai_callback() as cb:
+            result = llm.generate(batch_messages)
+
+        if result.generations:
+            response = result.generations[0][0].text
+
+            # Display the answer outside of the expander
+            st.write(response)
+
+            # Using an expander to display references and token information
             with st.expander("Referenties en Token Informatie"):
                 references = [f"Referentie gevonden op pagina {idx+1}" for idx, doc in enumerate(docs)]
                 for ref in references:
@@ -73,23 +91,8 @@ def main():
                 st.write(f"Completion tokens: {cb.completion_tokens}")
                 st.write(f"Totaal aantal succesvolle verzoeken: {cb.successful_requests}")
                 st.write(f"Totale kosten (USD): ${cb.total_cost:.6f}")
-
-            llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
-
-            batch_messages = [
-                [
-                SystemMessage(content=document_text),
-                HumanMessage(content=user_question),
-                ],
-            ]
-
-            result = llm.generate(batch_messages)
-
-            if result.generations:
-                response = result.generations[0][0].text
-                st.write(response)
-            else:
-                st.error("Geen antwoord gegenereerd.")
+        else:
+            st.error("Geen antwoord gegenereerd.")
 
 if __name__ == "__main__":
     main()

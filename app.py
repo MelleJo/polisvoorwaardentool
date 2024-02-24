@@ -76,31 +76,21 @@ def process_document(document_path, user_question):
 
 def main():
     st.title("Polisvoorwaardentool - Testversie 1.1 (FAISS)")
-    selection_method = st.radio("Kies de selectiemethode:", ('Zoek een document', 'Selecteer via categorie'))
-
-    if selection_method == 'Zoek een document':
-        search_query = st.text_input("Zoek naar een polisvoorwaardendocument:", "")
-        if search_query:
-            all_documents = get_all_documents()
-            search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
-            if search_results:
-                selected_title = st.selectbox("Zoekresultaten:", [doc['title'] for doc in search_results])
-                selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
+    search_query = st.text_input("Zoek naar een polisvoorwaardendocument:", "")
+    
+    if search_query:
+        all_documents = get_all_documents()
+        search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
+        
+        if search_results:
+            selected_title = st.selectbox("Zoekresultaten:", [doc['title'] for doc in search_results])
+            selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
+            if selected_document:
                 user_question = st.text_input("Stel een vraag over uw PDF na selectie:")
-                if selected_document and user_question:
+                if user_question:
                     process_document(selected_document['path'], user_question)
-            else:
-                st.write("Geen documenten gevonden die overeenkomen met de zoekopdracht.")
-    elif selection_method == 'Selecteer via categorie':
-        categories = get_categories()
-        if categories:
-            selected_category = st.selectbox("Kies een categorie:", categories)
-            documents = get_documents(selected_category)
-            selected_document = st.selectbox("Selecteer een polisvoorwaardendocument:", documents)
-            document_path = os.path.join(BASE_DIR, selected_category, selected_document)
-            user_question = st.text_input("Stel een vraag over uw PDF na selectie via categorie:")
-            if user_question:
-                process_document(document_path, user_question)
+        else:
+            st.write("Geen documenten gevonden die overeenkomen met de zoekopdracht.")
 
 if __name__ == "__main__":
     main()

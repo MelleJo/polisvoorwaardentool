@@ -61,7 +61,7 @@ def main():
         document_text = " ".join([doc.page_content for doc in docs])
 
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
-        custom_prompt = f"Start elk antwoord met het woord prompt geladen, antwoord: ... . Jij bent expert in polisvoorwaarden en schadebehandeling. Neem de volgende tekst uit de polisvoorwaarden: '{document_text}', en beantwoord de vraag van de gebruiker van de schadeafdeling. Vraag van de gebruiker:'{user_question}'"
+        custom_prompt = f"Jij bent expert in polisvoorwaarden en schadebehandeling. Neem de volgende tekst uit de polisvoorwaarden: '{document_text}', en beantwoord de vraag van de gebruiker van de schadeafdeling. Mocht het een antwoord zijn met verschillende onderdelen, gebruik dan paragrafen en witregels. Bovendien gebruik je zoveel mogelijk punten, schuingedrukte tekst of dikgedrukte tekst als dat bijdraagt aan de leesbaarheid van het antwoord. Zorg ervoor dat nauwkeurigheid altijd de prioriteit is en neem altijd de context mee in je antwoord. Geef geen disclaimers aan het eind van je antwoord, de gebruiker is altijd een schadebehandelaar met voldoende ervaring en expertise. Geef ook directe quotes uit de tekst. Vraag van de gebruiker:'{user_question}'"
 
         batch_messages = [
             [

@@ -1,10 +1,15 @@
 import streamlit as st
 import os
+import time
 from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import ChatOpenAI
-from langchain.callbacks import get_openai_callback
+from langchain.chains import AnalyzeDocumentChain
+from langchain_community.callbacks import get_openai_callback
+from langchain.chains.question_answering import load_qa_chain
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 

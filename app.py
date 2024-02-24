@@ -13,6 +13,16 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
+def get_all_documents():
+    all_docs = []
+    for root, dirs, files in os.walk(BASE_DIR):
+        for file in files:
+            if file.endswith('.pdf'):
+                path = os.path.join(root, file)
+                # Store both the file path and the title for displaying
+                all_docs.append({'title': file, 'path': path})
+    return all_docs
+
 def get_categories():
     try:
         return sorted(next(os.walk(BASE_DIR))[1])
@@ -36,6 +46,25 @@ def extract_text_from_pdf_by_page(file_path):
 
 def main():
     st.title("Polisvoorwaardentool - Testversie 1.1 (FAISS)")
+
+    search_query = st.text_input("Zoek naar een polisvoorwaardendocument:", "")
+    if search_query:
+        all_documents = get_all_documents()
+        # Simple search in document titles
+        search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
+
+        if search_results:
+            # Let user select from search results
+            selected_title = st.selectbox("Zoekresultaten:", [doc['title'] for doc in search_results])
+            selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None) 
+            
+            if selected_document:
+                document_path = selected_document['path']
+                with open(document_path, "rb") as file:
+                    st.download_button("Download Geselecteerd Document", file, file_name=selected_document['title'])
+
+            else:
+                st.write("Geen documenten gevonden die overeenkomen met de zoekopdracht.")
 
     categories = get_categories()
     if not categories:

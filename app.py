@@ -13,6 +13,24 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
+# Mapping for insurance company abbreviations to their full or preferred names
+company_name_mapping = {
+    "NN": "Nationale Nederlanden",
+    "asr": "a.s.r.",
+    "ASR": "a.s.r.",
+    "NLG": "NLG Verzekeringen",
+    "Avero": "Avéro Achmea",
+    "Europeesche": 'Europeesche Verzekeringen',
+    "AIG": "AIG",
+    "Allianz": "Allianz",
+    "Bikerpolis": "Bikerpolis",
+    "DAS": "DAS",
+    "Guardian": "Guardian",
+    "Noordeloos": "Noordeloos",
+    "Reaal": "Reaal",
+    "Unigarant": "Unigarant",
+}
+
 def get_all_documents():
     all_docs = []
     for root, dirs, files in os.walk(BASE_DIR):
@@ -27,8 +45,12 @@ def get_insurance_companies(all_documents):
     for doc in all_documents:
         parts = doc['title'].split('_')
         if len(parts) >= 2:
-            companies.add(parts[1])
+            company_key = parts[1].lower()  # Normalize to lowercase for matching
+            # Use the mapping if it exists, otherwise use the company key as is
+            company_name = company_name_mapping.get(company_key, parts[1].capitalize())
+            companies.add(company_name)
     return sorted(companies)
+
 
 def get_categories():
     try:

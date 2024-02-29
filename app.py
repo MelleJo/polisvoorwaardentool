@@ -11,7 +11,6 @@ from langchain_community.callbacks import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_all_documents():
@@ -22,6 +21,14 @@ def get_all_documents():
                 path = os.path.join(root, file)
                 all_docs.append({'title': file, 'path': path})
     return all_docs
+
+def get_insurance_companies(all_documents):
+    companies = set()
+    for doc in all_documents:
+        parts = doc['title'].split('_')
+        if len(parts) >= 2:
+            companies.add(parts[1])
+    return sorted(companies)
 
 def get_categories():
     try:
@@ -69,35 +76,40 @@ def process_document(document_path, user_question):
     else:
         st.error("No answer generated.")
 
+def display_search_results(search_results):
+    if search_results:
+        selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
+        selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
+        if selected_document:
+            user_question = st.text_input("Ask a question about your PDF after selection:")
+            if user_question:
+                process_document(selected_document['path'], user_question)
+
 def main():
     st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
-    selection_method = st.radio("Choose your document selection method:", ['Search for a document', 'Select via category'])
+    all_documents = get_all_documents()  # Move this here to use in both search options
+    selection_method = st.radio("Choose your document selection method:", 
+                                ['Search for a document', 'Select via category', 'Search by insurance company'])
 
     if selection_method == 'Search for a document':
         search_query = st.text_input("Search for a policy condition document:", "")
         if search_query:
-            all_documents = get_all_documents()
             search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
-            if search_results:
-                selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
-                selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
-                if selected_document:
-                    user_question = st.text_input("Ask a question about your PDF after selection:")
-                    if user_question:
-                        process_document(selected_document['path'], user_question)
-            else:
-                st.write("No documents found matching the search query.")
+            display_search_results(search_results)
+
     elif selection_method == 'Select via category':
         categories = get_categories()
         if categories:
             selected_category = st.selectbox("Choose a category:", categories)
             documents = get_documents(selected_category)
-            if documents:
-                selected_document = st.selectbox("Select a policy condition document:", documents)
-                document_path = os.path.join(BASE_DIR, selected_category, selected_document)
-                user_question = st.text_input("Ask a question about your PDF after selection:")
-                if user_question:
-                    process_document(document_path, user_question)
+            display_search_results(documents)
+
+    elif selection_method == 'Search by insurance company':
+        companies = get_insurance_companies(all_documents)
+        selected_company = st.selectbox("Select an insurance company:", companies)
+        if selected_company:
+            company_documents = [doc for doc in all_documents if selected_company == doc['title'].split('_')[1]]
+            display_search_results(company_documents)
 
 if __name__ == "__main__":
     main()

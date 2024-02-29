@@ -125,12 +125,24 @@ def main():
             documents = get_documents(selected_category)
             display_search_results(documents)
 
+    # Inside your main function, find the section handling 'Search by insurance company'
+
     elif selection_method == 'Search by insurance company':
         companies = get_insurance_companies(all_documents)
         selected_company = st.selectbox("Select an insurance company:", companies)
         if selected_company:
-            company_documents = [doc for doc in all_documents if selected_company == doc['title'].split('_')[1]]
-            display_search_results(company_documents)
+        # Find the keys corresponding to the selected full/preferred name
+            original_keys = [key for key, value in company_name_mapping.items() if value.lower() == selected_company.lower()]
+        
+        # If the company name was not altered in the mapping, include it as well
+        if not original_keys:
+            original_keys = [selected_company.lower()]
+        
+        # Filter documents by checking against all possible keys
+        company_documents = [doc for doc in all_documents if any(doc['title'].split('_')[1].lower() == ok for ok in original_keys)]
+        
+        display_search_results(company_documents)
+
 
 if __name__ == "__main__":
     main()

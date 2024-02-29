@@ -11,6 +11,7 @@ from langchain_community.callbacks import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
+
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 def get_all_documents():
@@ -26,7 +27,7 @@ def get_categories():
     try:
         return sorted(next(os.walk(BASE_DIR))[1])
     except StopIteration:
-        st.error(f"Fout bij toegang tot categorieën in {BASE_DIR}. Controleer of de map bestaat en niet leeg is.")
+        st.error(f"Error accessing categories in {BASE_DIR}. Please check if the directory exists and is not empty.")
         return []
 
 def get_documents(category):
@@ -44,53 +45,59 @@ def extract_text_from_pdf_by_page(file_path):
     return pages_text
 
 def process_document(document_path, user_question):
-    # Display download button for the document
-    with open(document_path, "rb") as file:
-        st.download_button("Download Geselecteerd Document", file, file_name=os.path.basename(document_path))
-
     document_pages = extract_text_from_pdf_by_page(document_path)
     embeddings = OpenAIEmbeddings()
     knowledge_base = FAISS.from_texts(document_pages, embeddings)
-    
-    if user_question:
-        docs = knowledge_base.similarity_search(user_question)
-        document_text = " ".join([doc.page_content for doc in docs])
+    docs = knowledge_base.similarity_search(user_question)
+    document_text = " ".join([doc.page_content for doc in docs])
 
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
-        custom_prompt = f"Gegeven de volgende tekst uit de polisvoorwaarden: '{document_text}', beantwoord de vraag van de gebruiker. Vraag van de gebruiker: '{user_question}'"
-        
-        with get_openai_callback() as cb:
-            result = llm.generate([[SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]])
+    llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
+    custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
 
-        if result.generations:
-            response = result.generations[0][0].text
-            st.write(response)
-            with st.expander("Referenties en Token Informatie"):
-                st.write(f"Totaal gebruikte tokens: {cb.total_tokens}")
-                st.write(f"Prompt tokens: {cb.prompt_tokens}")
-                st.write(f"Completion tokens: {cb.completion_tokens}")
-                st.write(f"Totaal aantal succesvolle verzoeken: {cb.successful_requests}")
-                st.write(f"Totale kosten (USD): ${cb.total_cost:.6f}")
-        else:
-            st.error("Geen antwoord gegenereerd.")
+    with get_openai_callback() as cb:
+        result = llm.generate([[SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]])
+
+    if result.generations:
+        response = result.generations[0][0].text
+        st.write(response)
+        with st.expander("References and Token Information"):
+            st.write(f"Total used tokens: {cb.total_tokens}")
+            st.write(f"Prompt tokens: {cb.prompt_tokens}")
+            st.write(f"Completion tokens: {cb.completion_tokens}")
+            st.write(f"Total successful requests: {cb.successful_requests}")
+            st.write(f"Total cost (USD): ${cb.total_cost:.6f}")
+    else:
+        st.error("No answer generated.")
 
 def main():
-    st.title("Polisvoorwaardentool - Testversie 1.1 (FAISS)")
-    search_query = st.text_input("Zoek naar een polisvoorwaardendocument:", "")
-    
-    if search_query:
-        all_documents = get_all_documents()
-        search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
-        
-        if search_results:
-            selected_title = st.selectbox("Zoekresultaten:", [doc['title'] for doc in search_results])
-            selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
-            if selected_document:
-                user_question = st.text_input("Stel een vraag over uw PDF na selectie:")
+    st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
+    selection_method = st.radio("Choose your document selection method:", ['Search for a document', 'Select via category'])
+
+    if selection_method == 'Search for a document':
+        search_query = st.text_input("Search for a policy condition document:", "")
+        if search_query:
+            all_documents = get_all_documents()
+            search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
+            if search_results:
+                selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
+                selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
+                if selected_document:
+                    user_question = st.text_input("Ask a question about your PDF after selection:")
+                    if user_question:
+                        process_document(selected_document['path'], user_question)
+            else:
+                st.write("No documents found matching the search query.")
+    elif selection_method == 'Select via category':
+        categories = get_categories()
+        if categories:
+            selected_category = st.selectbox("Choose a category:", categories)
+            documents = get_documents(selected_category)
+            if documents:
+                selected_document = st.selectbox("Select a policy condition document:", documents)
+                document_path = os.path.join(BASE_DIR, selected_category, selected_document)
+                user_question = st.text_input("Ask a question about your PDF after selection:")
                 if user_question:
-                    process_document(selected_document['path'], user_question)
-        else:
-            st.write("Geen documenten gevonden die overeenkomen met de zoekopdracht.")
+                    process_document(document_path, user_question)
 
 if __name__ == "__main__":
     main()

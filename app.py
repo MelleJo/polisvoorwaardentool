@@ -15,20 +15,19 @@ BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
 # Mapping for insurance company abbreviations to their full or preferred names
 company_name_mapping = {
-    "NN": "Nationale Nederlanden",
+    "nn": "Nationale Nederlanden",
     "asr": "a.s.r.",
-    "ASR": "a.s.r.",
-    "NLG": "NLG Verzekeringen",
-    "Avero": "Avéro Achmea",
-    "Europeesche": 'Europeesche Verzekeringen',
-    "AIG": "AIG",
-    "Allianz": "Allianz",
-    "Bikerpolis": "Bikerpolis",
-    "DAS": "DAS",
-    "Guardian": "Guardian",
-    "Noordeloos": "Noordeloos",
-    "Reaal": "Reaal",
-    "Unigarant": "Unigarant",
+    "nlg": "NLG Verzekeringen",
+    "avero": "Avéro Achmea",
+    "europeesche": "Europeesche Verzekeringen",
+    "aig": "AIG",
+    "allianz": "Allianz",
+    "bikerpolis": "Bikerpolis",
+    "das": "DAS",
+    "guardian": "Guardian",
+    "noordeloos": "Noordeloos",
+    "reaal": "Reaal",
+    "unigarant": "Unigarant",
 }
 
 def get_all_documents():
@@ -46,10 +45,10 @@ def get_insurance_companies(all_documents):
         parts = doc['title'].split('_')
         if len(parts) >= 2:
             company_key = parts[1].lower()  # Normalize to lowercase for matching
-            # Use the mapping if it exists, otherwise use the company key as is
-            company_name = company_name_mapping.get(company_key, parts[1].capitalize())
+            company_name = company_name_mapping.get(company_key, company_key.capitalize())
             companies.add(company_name)
     return sorted(companies)
+
 
 
 def get_categories():

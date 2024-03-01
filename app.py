@@ -13,7 +13,6 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
-# Mapping for insurance company abbreviations to their full or preferred names
 company_name_mapping = {
     "nn": "Nationale Nederlanden",
     "asr": "a.s.r.",
@@ -44,18 +43,16 @@ def get_insurance_companies(all_documents):
     for doc in all_documents:
         parts = doc['title'].split('_')
         if len(parts) >= 2:
-            company_key = parts[1].lower()  # Normalize to lowercase for matching
+            company_key = parts[1].lower()
             company_name = company_name_mapping.get(company_key, company_key.capitalize())
             companies.add(company_name)
     return sorted(companies)
-
-
 
 def get_categories():
     try:
         return sorted(next(os.walk(BASE_DIR))[1])
     except StopIteration:
-        st.error(f"Error accessing categories in {BASE_DIR}. Please check if the directory exists and is not empty.")
+        st.error("Error accessing categories. Please check if the directory exists and is not empty.")
         return []
 
 def get_documents(category):
@@ -83,7 +80,7 @@ def process_document(document_path, user_question):
     custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
 
     with get_openai_callback() as cb:
-        result = llm.generate([[SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]])
+        result = llm.generate([[{"content": custom_prompt}], [{"content": user_question}]])
 
     if result.generations:
         response = result.generations[0][0].text
@@ -102,13 +99,8 @@ def display_search_results(search_results):
         st.write("No documents found.")
         return
     
-    # Adjusting for different types of search results
     if isinstance(search_results[0], str):
-        # This case handles the list of filenames (strings)
         search_results = [{'title': filename, 'path': os.path.join(BASE_DIR, filename)} for filename in search_results]
-    elif isinstance(search_results[0], dict) and 'path' not in search_results[0]:
-        # If the dict doesn't have a 'path', reconstruct it (just a precaution, adjust as necessary)
-        search_results = [{'title': doc['title'], 'path': os.path.join(BASE_DIR, doc['title'])} for doc in search_results]
 
     selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
     selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
@@ -118,13 +110,10 @@ def display_search_results(search_results):
         if user_question:
             process_document(selected_document['path'], user_question)
 
-
-
 def main():
     st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
-    all_documents = get_all_documents()  # Move this here to use in both search options
-    selection_method = st.radio("Choose your document selection method:", 
-                                ['Search for a document', 'Select via category', 'Search by insurance company'])
+    all_documents = get_all_documents()
+    selection_method = st.radio("Choose your document selection method:", ['Search for a document', 'Select via category', 'Search by insurance company'])
 
     if selection_method == 'Search for a document':
         search_query = st.text_input("Search for a policy condition document:", "")
@@ -134,31 +123,20 @@ def main():
 
     elif selection_method == 'Select via category':
         categories = get_categories()
-        # Existing code in the 'Select via category' section
         if categories:
             selected_category = st.selectbox("Choose a category:", categories)
-            documents = get_documents(selected_category)  # This returns a list of filenames (strings)
-            display_search_results(documents)  # Ensure this call is compatible with the updated function
-
-
-    # Inside your main function, find the section handling 'Search by insurance company'
+            documents = get_documents(selected_category)
+            display_search_results(documents)
 
     elif selection_method == 'Search by insurance company':
         companies = get_insurance_companies(all_documents)
         selected_company = st.selectbox("Select an insurance company:", companies)
         if selected_company:
-        # Find the keys corresponding to the selected full/preferred name
             original_keys = [key for key, value in company_name_mapping.items() if value.lower() == selected_company.lower()]
-        
-        # If the company name was not altered in the mapping, include it as well
-        if not original_keys:
-            original_keys = [selected_company.lower()]
-        
-        # Filter documents by checking against all possible keys
-        company_documents = [doc for doc in all_documents if any(doc['title'].split('_')[1].lower() == ok for ok in original_keys)]
-        
-        display_search_results(company_documents)
-
+            if not original_keys:
+                original_keys = [selected_company.lower()]
+            company_documents = [doc for doc in all_documents if any(key for key in original_keys if key in doc['title'].lower())]
+            display_search_results(company_documents)
 
 if __name__ == "__main__":
     main()

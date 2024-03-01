@@ -75,7 +75,7 @@ def process_document(document_path, user_question):
     docs = knowledge_base.similarity_search(user_question)
     document_text = " ".join([doc.page_content for doc in docs])
 
-    llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0)
+    llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
     custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
 
     with get_openai_callback() as cb:

@@ -79,7 +79,10 @@ def process_document(document_path, user_question):
     custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
 
     with get_openai_callback() as cb:
-        result = llm.generate([[{"content": custom_prompt}], [{"content": user_question}]])
+        result = llm.generate([
+            [SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]
+        ])
+
 
     if result.generations:
         response = result.generations[0][0].text

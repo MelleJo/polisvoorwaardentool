@@ -98,13 +98,23 @@ def process_document(document_path, user_question):
         st.error("No answer generated.")
 
 def display_search_results(search_results):
-    if search_results:
-        selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
-        selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
-        if selected_document:
-            user_question = st.text_input("Ask a question about your PDF after selection:")
-            if user_question:
-                process_document(selected_document['path'], user_question)
+    if not search_results:
+        st.write("No documents found.")
+        return
+    
+    # Check if the first element of search_results is a string (indicating a list of filenames)
+    if isinstance(search_results[0], str):
+        # Convert filenames to the expected dictionary format with 'title' keys
+        search_results = [{'title': filename, 'path': os.path.join(BASE_DIR, filename)} for filename in search_results]
+
+    selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
+    selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
+    
+    if selected_document:
+        user_question = st.text_input("Ask a question about your PDF after selection:")
+        if user_question:
+            process_document(selected_document['path'], user_question)
+
 
 def main():
     st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
@@ -120,10 +130,12 @@ def main():
 
     elif selection_method == 'Select via category':
         categories = get_categories()
+        # Existing code in the 'Select via category' section
         if categories:
             selected_category = st.selectbox("Choose a category:", categories)
-            documents = get_documents(selected_category)
-            display_search_results(documents)
+            documents = get_documents(selected_category)  # This returns a list of filenames (strings)
+            display_search_results(documents)  # Ensure this call is compatible with the updated function
+
 
     # Inside your main function, find the section handling 'Search by insurance company'
 

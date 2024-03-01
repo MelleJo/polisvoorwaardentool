@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import time
+import pyperclip
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -95,6 +96,9 @@ def process_document(document_path, user_question):
                 st.write(f"Total cost (USD): ${cb.total_cost:.6f}")
         else:
             st.error("No answer generated.")
+
+        answer = response
+        st.session_state["last answer"] = answer
 
 
 def display_search_results(search_results):

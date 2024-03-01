@@ -102,10 +102,13 @@ def display_search_results(search_results):
         st.write("No documents found.")
         return
     
-    # Check if the first element of search_results is a string (indicating a list of filenames)
+    # Adjusting for different types of search results
     if isinstance(search_results[0], str):
-        # Convert filenames to the expected dictionary format with 'title' keys
+        # This case handles the list of filenames (strings)
         search_results = [{'title': filename, 'path': os.path.join(BASE_DIR, filename)} for filename in search_results]
+    elif isinstance(search_results[0], dict) and 'path' not in search_results[0]:
+        # If the dict doesn't have a 'path', reconstruct it (just a precaution, adjust as necessary)
+        search_results = [{'title': doc['title'], 'path': os.path.join(BASE_DIR, doc['title'])} for doc in search_results]
 
     selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
     selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
@@ -114,6 +117,7 @@ def display_search_results(search_results):
         user_question = st.text_input("Ask a question about your PDF after selection:")
         if user_question:
             process_document(selected_document['path'], user_question)
+
 
 
 def main():

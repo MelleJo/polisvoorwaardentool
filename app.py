@@ -85,11 +85,8 @@ def process_document(document_path, user_question):
 
 
     if result.generations:
-        for chunk in result.generations(user_question):
-            st.write(chunk.message.content)
-        
-        #response = result.generations[0][0].text
-        #st.write(response)
+        response = result.generations[0][0].text
+        st.write(response)
         with st.expander("References and Token Information"):
             st.write(f"Total used tokens: {cb.total_tokens}")
             st.write(f"Prompt tokens: {cb.prompt_tokens}")

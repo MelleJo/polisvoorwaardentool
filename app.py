@@ -97,9 +97,6 @@ def process_document(document_path, user_question):
         else:
             st.error("No answer generated.")
 
-        answer = response
-        st.session_state["last answer"] = answer
-
 
 def display_search_results(search_results):
     if not search_results:

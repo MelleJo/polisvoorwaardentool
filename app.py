@@ -2,10 +2,9 @@ import streamlit as st
 import os
 import time
 from PyPDF2 import PdfReader
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.chains import AnalyzeDocumentChain
 from langchain_community.callbacks import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
@@ -113,7 +112,8 @@ def display_search_results(search_results):
 def main():
     st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
     all_documents = get_all_documents()
-    selection_method = st.radio("Choose your document selection method:", ['Search for a document', 'Select via category', 'Search by insurance company'])
+    selection_method = st.radio("Choose your document selection method:", 
+                                ['Search for a document', 'Select via category', 'Search by insurance company'])
 
     if selection_method == 'Search for a document':
         search_query = st.text_input("Search for a policy condition document:", "")
@@ -125,8 +125,10 @@ def main():
         categories = get_categories()
         if categories:
             selected_category = st.selectbox("Choose a category:", categories)
-            documents = get_documents(selected_category)
-            display_search_results(documents)
+            document_filenames = get_documents(selected_category)  # Returns filenames
+            # Construct full paths for documents in the selected category
+            documents_with_paths = [{'title': filename, 'path': os.path.join(BASE_DIR, selected_category, filename)} for filename in document_filenames]
+            display_search_results(documents_with_paths)
 
     elif selection_method == 'Search by insurance company':
         companies = get_insurance_companies(all_documents)

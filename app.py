@@ -69,32 +69,33 @@ def extract_text_from_pdf_by_page(file_path):
     return pages_text
 
 def process_document(document_path, user_question):
-    document_pages = extract_text_from_pdf_by_page(document_path)
-    embeddings = OpenAIEmbeddings()
-    knowledge_base = FAISS.from_texts(document_pages, embeddings)
-    docs = knowledge_base.similarity_search(user_question)
-    document_text = " ".join([doc.page_content for doc in docs])
+    with st.spinner('Processing your question...'):
+        document_pages = extract_text_from_pdf_by_page(document_path)
+        embeddings = OpenAIEmbeddings()
+        knowledge_base = FAISS.from_texts(document_pages, embeddings)
+        docs = knowledge_base.similarity_search(user_question)
+        document_text = " ".join([doc.page_content for doc in docs])
 
-    llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
-    custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
+        custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
 
-    with get_openai_callback() as cb:
-        result = llm.generate([
-            [SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]
-        ])
+        with get_openai_callback() as cb:
+            result = llm.generate([
+                [SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]
+            ])
 
+        if result.generations:
+            response = result.generations[0][0].text
+            st.write(response)
+            with st.expander("References and Token Information"):
+                st.write(f"Total used tokens: {cb.total_tokens}")
+                st.write(f"Prompt tokens: {cb.prompt_tokens}")
+                st.write(f"Completion tokens: {cb.completion_tokens}")
+                st.write(f"Total successful requests: {cb.successful_requests}")
+                st.write(f"Total cost (USD): ${cb.total_cost:.6f}")
+        else:
+            st.error("No answer generated.")
 
-    if result.generations:
-        response = result.generations[0][0].text
-        st.write(response)
-        with st.expander("References and Token Information"):
-            st.write(f"Total used tokens: {cb.total_tokens}")
-            st.write(f"Prompt tokens: {cb.prompt_tokens}")
-            st.write(f"Completion tokens: {cb.completion_tokens}")
-            st.write(f"Total successful requests: {cb.successful_requests}")
-            st.write(f"Total cost (USD): ${cb.total_cost:.6f}")
-    else:
-        st.error("No answer generated.")
 
 def display_search_results(search_results):
     if not search_results:

@@ -112,6 +112,17 @@ def display_search_results(search_results):
         if user_question:
             process_document(selected_document['path'], user_question)
 
+        if st.button('Download PDF'):
+            with open(selected_document['path'], "rb") as file:
+                btn = st.download_button(
+                    label="Download PDF",
+                    data=file,
+                    file_name=selected_document['title'],
+                    mime="application/octet-stream"
+                )
+
+    
+
 def main():
     st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
     all_documents = get_all_documents()

@@ -77,18 +77,17 @@ def process_document(document_path, user_question):
     with st.spinner('Processing your question...'):
         # Extract text from the document
         document_pages = extract_text_from_pdf_by_page(document_path)
-        
+        embeddings = OpenAIEmbeddings()
+        knowledge_base = FAISS.from_texts(document_pages, embeddings)
+        docs = knowledge_base.similarity_search(user_question)
+        document_text = " ".join([doc.page_content for doc in docs])
+
         template = "Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
         
         prompt = ChatPromptTemplate.from_template(template)
 
-        # Initialize embeddings and vector store
-        embeddings = OpenAIEmbeddings()
-        knowledge_base = FAISS.from_texts(document_pages, embeddings)
         
         # Perform similarity search
-        docs = knowledge_base.similarity_search(user_question)
-        document_text = " ".join([doc.page_content for doc in docs])
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
         chain = prompt | llm | StrOutputParser() 
         return chain.stream({

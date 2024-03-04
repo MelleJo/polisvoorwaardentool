@@ -1,9 +1,13 @@
 streamlit
 openai
 PyPDF2
-faiss-cpu
 langchain_community
 langchain_openai
 langchain
-numpy
-sentence-transformers
+pinecone-client
+langchain_core
+redis
+langchain-pinecone
+sentence_transformers
+faiss-cpu
+pyperclip

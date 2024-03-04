@@ -87,7 +87,7 @@ def process_document(document_path, user_question):
 
         if result.generations:
             response = result.generations[0][0].text
-            st.write(response)
+            st.write_stream(response)
             with st.expander("References and Token Information"):
                 st.write(f"Total used tokens: {cb.total_tokens}")
                 st.write(f"Prompt tokens: {cb.prompt_tokens}")

@@ -71,31 +71,31 @@ def extract_text_from_pdf_by_page(file_path):
 
 def process_document(document_path, user_question):
     with st.spinner('Processing your question...'):
+        # Extract text from the document
         document_pages = extract_text_from_pdf_by_page(document_path)
+        
+        # Initialize embeddings and vector store
         embeddings = OpenAIEmbeddings()
         knowledge_base = FAISS.from_texts(document_pages, embeddings)
+        
+        # Perform similarity search
         docs = knowledge_base.similarity_search(user_question)
         document_text = " ".join([doc.page_content for doc in docs])
-
+        
+        # Prepare the prompt for the LLM
+        custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
+        
+        # Initialize the ChatOpenAI model for streaming
         llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
-        custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question. User's question: '{user_question}'"
-
-        with get_openai_callback() as cb:
-            result = llm.generate([
-                [SystemMessage(content=custom_prompt), HumanMessage(content=user_question)]
-            ])
-
-        if result.generations:
-            response = result.generations[0][0].text
-            st.write_stream(response)
-            with st.expander("References and Token Information"):
-                st.write(f"Total used tokens: {cb.total_tokens}")
-                st.write(f"Prompt tokens: {cb.prompt_tokens}")
-                st.write(f"Completion tokens: {cb.completion_tokens}")
-                st.write(f"Total successful requests: {cb.successful_requests}")
-                st.write(f"Total cost (USD): ${cb.total_cost:.6f}")
-        else:
-            st.error("No answer generated.")
+        
+        # Stream the response from the LLM
+        def generate_stream():
+            stream = llm.generate_stream(custom_prompt)
+            for response in stream:
+                yield response.text
+        
+        # Use st.write_stream to display the LLM responses in the app
+        st.write_stream(generate_stream())
 
 
 def display_search_results(search_results):

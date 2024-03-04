@@ -10,6 +10,10 @@ from langchain.chains import AnalyzeDocumentChain
 from langchain_community.callbacks import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+
+
 
 BASE_DIR = os.path.join(os.getcwd(), "preloaded_pdfs", "PolisvoorwaardenVA")
 
@@ -74,6 +78,10 @@ def process_document(document_path, user_question):
         # Extract text from the document
         document_pages = extract_text_from_pdf_by_page(document_path)
         
+        template = "Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
+        
+        prompt = ChatPromptTemplate.from_template(template)
+
         # Initialize embeddings and vector store
         embeddings = OpenAIEmbeddings()
         knowledge_base = FAISS.from_texts(document_pages, embeddings)
@@ -81,12 +89,18 @@ def process_document(document_path, user_question):
         # Perform similarity search
         docs = knowledge_base.similarity_search(user_question)
         document_text = " ".join([doc.page_content for doc in docs])
-        
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
+        chain = prompt | llm | StrOutputParser() 
+        return chain.stream({
+            "document_text": document_text,
+            "user_question": user_question,
+        })
+    
         # Prepare the prompt for the LLM
-        custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
+        #custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
         
         # Initialize the ChatOpenAI model for streaming
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
+        
         
         # Stream the response from the LLM
         def generate_stream():

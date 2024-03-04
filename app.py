@@ -56,7 +56,7 @@ def get_categories():
     try:
         return sorted(next(os.walk(BASE_DIR))[1])
     except StopIteration:
-        st.error("Error accessing categories. Please check if the directory exists and is not empty.")
+        st.error("Fout bij het openen van categorieën. Controleer of de map bestaat en niet leeg is.")
         return []
 
 def get_documents(category):
@@ -74,7 +74,7 @@ def extract_text_from_pdf_by_page(file_path):
     return pages_text
 
 def process_document(document_path, user_question):
-    with st.spinner('Processing your question...'):
+    with st.spinner('Denken...'):
         # Extract text from the document
         document_pages = extract_text_from_pdf_by_page(document_path)
         embeddings = OpenAIEmbeddings()
@@ -113,17 +113,17 @@ def process_document(document_path, user_question):
 
 def display_search_results(search_results):
     if not search_results:
-        st.write("No documents found.")
+        st.write("Geen documenten gevonden.")
         return
     
     if isinstance(search_results[0], str):
         search_results = [{'title': filename, 'path': os.path.join(BASE_DIR, filename)} for filename in search_results]
 
-    selected_title = st.selectbox("Search results:", [doc['title'] for doc in search_results])
+    selected_title = st.selectbox("Zoekresultaten:", [doc['title'] for doc in search_results])
     selected_document = next((doc for doc in search_results if doc['title'] == selected_title), None)
     
     if selected_document:
-        user_question = st.text_input("Ask a question about your PDF after selection:")
+        user_question = st.text_input("Stel een vraag over de polisvoorwaarden:")
         if user_question:
             # Call process_document and use its return value as the argument for st.write_stream
             document_stream = process_document(selected_document['path'], user_question)
@@ -132,7 +132,7 @@ def display_search_results(search_results):
         # Download button for the selected PDF file
         with open(selected_document['path'], "rb") as file:
             btn = st.download_button(
-                label="Download PDF",
+                label="Download polisvoorwaarden",
                 data=file,
                 file_name=selected_document['title'],
                 mime="application/pdf"
@@ -142,29 +142,29 @@ def display_search_results(search_results):
     
 
 def main():
-    st.title("Policy Conditions Tool - Version 1.1 (FAISS)")
+    st.title("Polisvoorwaardentool - testversie 1.2.")
     all_documents = get_all_documents()
-    selection_method = st.radio("Choose your document selection method:", 
-                                ['Search for a document', 'Select via category', 'Search by insurance company'])
+    selection_method = st.radio("Hoe wil je de polisvoorwaarden selecteren?:", 
+                                ['Zoeken', 'Categoriën', 'Per maatschappij'])
 
-    if selection_method == 'Search for a document':
-        search_query = st.text_input("Search for a policy condition document:", "")
+    if selection_method == 'Zoeken':
+        search_query = st.text_input("Zoek naar een polisvoorwaardenblad:", "")
         if search_query:
             search_results = [doc for doc in all_documents if search_query.lower() in doc['title'].lower()]
             display_search_results(search_results)
 
-    elif selection_method == 'Select via category':
+    elif selection_method == 'Categoriën':
         categories = get_categories()
         if categories:
-            selected_category = st.selectbox("Choose a category:", categories)
+            selected_category = st.selectbox("Kies een categorie:", categories)
             document_filenames = get_documents(selected_category)  # Returns filenames
             # Construct full paths for documents in the selected category
             documents_with_paths = [{'title': filename, 'path': os.path.join(BASE_DIR, selected_category, filename)} for filename in document_filenames]
             display_search_results(documents_with_paths)
 
-    elif selection_method == 'Search by insurance company':
+    elif selection_method == 'Per maatschappij':
         companies = get_insurance_companies(all_documents)
-        selected_company = st.selectbox("Select an insurance company:", companies)
+        selected_company = st.selectbox("Kies een maatschappij:", companies)
         if selected_company:
             original_keys = [key for key, value in company_name_mapping.items() if value.lower() == selected_company.lower()]
             if not original_keys:

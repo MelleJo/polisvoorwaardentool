@@ -82,7 +82,15 @@ def process_document(document_path, user_question):
         docs = knowledge_base.similarity_search(user_question)
         document_text = " ".join([doc.page_content for doc in docs])
 
-        template = "Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
+        template = """
+        Je bent een ervaren schadebehandelaar met diepgaande kennis van polisvoorwaarden. Jouw taak is om specifieke vragen over dekkingen, uitsluitingen en voorwaarden betrouwbaar en nauwkeurig te beantwoorden, gebruikmakend van de tekst uit de geladen polisvoorwaardendocumenten. Het is essentieel dat je antwoorden direct uit deze documenten haalt en specifiek citeert waar de informatie te vinden is, inclusief paginanummers of sectienummers indien beschikbaar.
+
+        Wanneer je een vraag tegenkomt waarvoor de informatie in de documenten niet volstaat om een betrouwbaar antwoord te geven, vraag dan om verduidelijking bij de gebruiker. Leg uit wat er gespecificeerd moet worden om een nauwkeurig antwoord te kunnen geven. Voor vragen die eenvoudig en rechtstreeks uit de tekst beantwoord kunnen worden, citeer dan de relevante informatie direct.
+
+        Houd er rekening mee dat als de dekking van een schade afhankelijk is van specifieke voorwaarden, je een duidelijke uitleg moet geven over deze voorwaarden. Je hoeft geen algemene disclaimers te geven die logisch zijn voor een schadebehandelaar, maar het is cruciaal om de voorwaarden voor dekking nauwkeurig weer te geven.
+
+        Gegeven de tekst uit de polisvoorwaarden: '{document_text}', en de vraag van de gebruiker: '{user_question}', hoe zou je deze vraag beantwoorden met inachtneming van de bovenstaande instructies?
+        """
         
         prompt = ChatPromptTemplate.from_template(template)
 
@@ -95,22 +103,6 @@ def process_document(document_path, user_question):
             "user_question": user_question,
         })
     
-        
-    
-        # Prepare the prompt for the LLM
-        #custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
-        
-        # Initialize the ChatOpenAI model for streaming
-        
-        
-        # Stream the response from the LLM
-        #def generate_stream():
-            #stream = llm.generate_stream(custom_prompt)
-            #for response in stream:
-                #yield response.text
-        
-        # Use st.write_stream to display the LLM responses in the app
-        #st.write_stream(generate_stream())
 
 
 def display_search_results(search_results):

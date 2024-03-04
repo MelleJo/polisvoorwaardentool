@@ -96,6 +96,8 @@ def process_document(document_path, user_question):
             "user_question": user_question,
         })
     
+        
+    
         # Prepare the prompt for the LLM
         #custom_prompt = f"Given the following text from the policy conditions: '{document_text}', answer the user's question: '{user_question}'"
         
@@ -103,13 +105,13 @@ def process_document(document_path, user_question):
         
         
         # Stream the response from the LLM
-        def generate_stream():
-            stream = llm.generate_stream(custom_prompt)
-            for response in stream:
-                yield response.text
+        #def generate_stream():
+            #stream = llm.generate_stream(custom_prompt)
+            #for response in stream:
+                #yield response.text
         
         # Use st.write_stream to display the LLM responses in the app
-        st.write_stream(generate_stream())
+        #st.write_stream(generate_stream())
 
 
 def display_search_results(search_results):
@@ -127,6 +129,7 @@ def display_search_results(search_results):
         user_question = st.text_input("Ask a question about your PDF after selection:")
         if user_question:
             process_document(selected_document['path'], user_question)
+            st.write_stream(process_document)
 
         # Download button for the selected PDF file
         with open(selected_document['path'], "rb") as file:

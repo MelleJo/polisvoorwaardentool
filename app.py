@@ -93,6 +93,8 @@ def process_document(document_path, user_question):
 
         Bij het beantwoorden van vragen zoals 'Een klant heeft een iPhone laten vallen op het balkon, is dit gedekt?', zorg ervoor dat je eerst bevestigt of 'Mobiele elektronica' verzekerd is op het polisblad. Vervolgens, identificeer of schade door vallen of stoten gedekt is en specificeer de maximale vergoeding die van toepassing is op dergelijke claims. Citeer de relevante sectie(s) uit de polisvoorwaarden die je antwoord ondersteunen, inclusief de pagina- of sectienummers voor directe referentie. 
 
+        Geef een conclusie aan het eind waar je in alle nauwkeurigheid een zo beknopt mogelijk antwoord geeft op de vraag.
+
         Gegeven de tekst uit de polisvoorwaarden: '{document_text}', en de vraag van de gebruiker: '{user_question}', hoe zou je deze vraag beantwoorden met inachtneming van de bovenstaande instructies?
         """
         

@@ -22,6 +22,7 @@ company_name_mapping = {
     "asr": "a.s.r.",
     "nlg": "NLG Verzekeringen",
     "avero": "Avéro Achmea",
+    "Avero-p-r521": "Avéro Achmea",
     "europeesche": "Europeesche Verzekeringen",
     "aig": "AIG",
     "allianz": "Allianz",

@@ -145,7 +145,7 @@ def display_search_results(search_results):
 def main():
     st.title("Polisvoorwaardentool - testversie 1.2.")
     all_documents = get_all_documents()
-    selection_method = st.radio("Hoe wil je de polisvoorwaarden selecteren?:", 
+    selection_method = st.radio("Hoe wil je de polisvoorwaarden selecteren?", 
                                 ['Zoeken', 'Categoriën', 'Per maatschappij'])
 
     if selection_method == 'Zoeken':

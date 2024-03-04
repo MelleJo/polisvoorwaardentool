@@ -127,8 +127,9 @@ def display_search_results(search_results):
     if selected_document:
         user_question = st.text_input("Ask a question about your PDF after selection:")
         if user_question:
-            process_document(selected_document['path'], user_question)
-            st.write_stream(process_document)
+            # Call process_document and use its return value as the argument for st.write_stream
+            document_stream = process_document(selected_document['path'], user_question)
+            st.write_stream(document_stream)  # Correctly pass the generator/stream to st.write_stream
 
         # Download button for the selected PDF file
         with open(selected_document['path'], "rb") as file:

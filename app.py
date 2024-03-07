@@ -103,7 +103,7 @@ def process_document(document_path, user_question):
 
         
         # Perform similarity search
-        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-turbo-preview", temperature=0, streaming=True)
+        llm = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4-0125-preview", temperature=0, streaming=True)
         chain = prompt | llm | StrOutputParser() 
         return chain.stream({
             "document_text": document_text,
@@ -143,7 +143,7 @@ def display_search_results(search_results):
     
 
 def main():
-    st.title("Polisvoorwaardentool - stabiele versie 1.2.")
+    st.title("Polisvoorwaardentool - stabiele versie 1.2.1.")
     all_documents = get_all_documents()
     selection_method = st.radio("Hoe wil je de polisvoorwaarden selecteren?:", 
                                 ['Zoeken', 'Categoriën', 'Per maatschappij'])

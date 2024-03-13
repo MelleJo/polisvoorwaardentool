@@ -100,7 +100,7 @@ def process_document(document_path, user_question):
 
         Bij een vraag over wintersportartikelen, let goed op de keuzedekkingen.
 
-        Bij een vraag over gehuurde artikelen op een reisverzekering, maak goed onderscheid tussen gehuuurde artikelen als vervanging of "gewoon" gehuurd. Dit is een verschil. Geef dit aan in je antwoord. s
+        Bij een vraag over gehuurde artikelen op een reisverzekering, maak goed onderscheid tussen gehuuurde artikelen als vervanging of "gewoon" gehuurd. Dit is een verschil. Geef dit aan in je antwoord.
 
         Gegeven de tekst uit de polisvoorwaarden: '{document_text}', en de vraag van de gebruiker: '{user_question}', hoe zou je deze vraag beantwoorden met inachtneming van de bovenstaande instructies?
         """

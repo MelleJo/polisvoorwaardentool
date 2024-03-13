@@ -77,8 +77,7 @@ def extract_text_from_pdf_by_page(file_path):
 def process_document(document_path, user_question):
     with st.spinner('Denken...'):
         # Extract text from the document
-        document
-        _pages = extract_text_from_pdf_by_page(document_path)
+        document_pages = extract_text_from_pdf_by_page(document_path)
         embeddings = OpenAIEmbeddings()
         knowledge_base = FAISS.from_texts(document_pages, embeddings)
         docs = knowledge_base.similarity_search(user_question)

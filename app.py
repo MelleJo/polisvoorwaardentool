@@ -96,6 +96,12 @@ def process_document(document_path, user_question):
 
         Geef een conclusie aan het eind waar je in alle nauwkeurigheid een zo beknopt mogelijk antwoord geeft op de vraag.
 
+        Let goed op de verschillende keuzedekkingen of modules die op een polisvoorwaardenblad vermeldt kunnen zijn, dit is essentieel voor het geven van een goed antwoord.
+
+        Bij een vraag over wintersportartikelen, let goed op de keuzedekkingen.
+
+        Bij een vraag over gehuurde artikelen op een reisverzekering, maak goed onderscheid tussen gehuuurde artikelen als vervanging of "gewoon" gehuurd. Dit is een verschil. Geef dit aan in je antwoord. s
+
         Gegeven de tekst uit de polisvoorwaarden: '{document_text}', en de vraag van de gebruiker: '{user_question}', hoe zou je deze vraag beantwoorden met inachtneming van de bovenstaande instructies?
         """
         

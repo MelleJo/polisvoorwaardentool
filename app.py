@@ -84,25 +84,16 @@ def process_document(document_path, user_question):
         document_text = " ".join([doc.page_content for doc in docs])
 
         template = """
-        Uitgangspunt: Als schadebehandelaar met uitgebreide ervaring in polisvoorwaarden, is je doel om vragen over dekkingen, uitsluitingen, voorwaarden en maximale vergoedingen te beantwoorden met een hoge mate van betrouwbaarheid en precisie, gebruikmakend van het document met polisvoorwaarden.
+        Gegeven polisvoorwaarden: '{document_text}' en een specifieke gebruikersvraag: '{user_question}', voer de volgende stappen uit voor een efficiënt en beknopt antwoord:
 
-        Taak: Gegeven de polisvoorwaarden als '{document_text}' en de gebruikersvraag '{user_question}', volg deze stappen:
+        1. **Zoek de Relevante Sectie**: Identificeer snel de sectie in de polisvoorwaarden die gerelateerd is aan de vraag. Focus op trefwoorden die direct verband houden met de vraag, zoals 'iPad', 'valschade', of 'Mobiele elektronica'.
 
-        Directe Match Zoeken: Identificeer of het onderwerp van de vraag (zoals 'Mobiele elektronica', 'schade door vallen', 'wintersportartikelen', etc.) expliciet vermeld staat in de polisvoorwaarden. Gebruik trefwoordmatching en contextbegrip om relevante secties snel te vinden.
+        2. **Geef Specifieke Informatie**: Citeer de exacte passage die relevant is voor de vraag, inclusief de sectie- of paginanummer voor gemakkelijke referentie.
 
-        Informatie Extraheren en Citeren: Voor vragen die rechtstreeks uit de tekst beantwoord kunnen worden, extraher en citeer de relevante passage inclusief de sectie- of paginanummer. Zorg ervoor dat de informatie specifiek en contextueel juist is.
+        3. **Conclusie**: Formuleer een directe conclusie op basis van de geciteerde informatie. Als de dekking afhankelijk is van specifieke voorwaarden of als er onduidelijkheid bestaat, benoem dit dan kort.
 
-        Clarificatie en Specificatie: Indien een vraag niet direct beantwoord kan worden met de verstrekte informatie, vraag om meer specifieke details van de gebruiker om een precieze respons te kunnen formuleren.
+        Vermijd overbodige informatie en zorg voor een antwoord dat zowel volledig als beknopt is, gericht op het efficiënt beantwoorden van de gebruikersvraag.
 
-        Analyse van Dekking en Uitsluitingen: Analyseer de dekking met betrekking tot de specifieke situatie, inclusief alle relevante voorwaarden, uitsluitingen en limieten. Let op de nuances van standaarddekking versus keuzedekkingen of modules.
-
-        Maximale Vergoeding Duidelijk Maken: Benadruk de maximale vergoeding voor het betreffende item of situatie indien van toepassing, en maak duidelijk onderscheid tussen verschillende dekkingslimieten binnen de polis.
-
-        Conclusie en Aanbeveling: Sluit af met een duidelijke en bondige conclusie die direct antwoordt op de gebruikersvraag, inclusief een aanbeveling of actiestap indien relevant.
-
-        Aandacht voor Specifieke Scenario's: Wees extra aandachtig bij vragen over speciale dekkingen (zoals voor wintersportartikelen of gehuurde artikelen op een reisverzekering). Maak duidelijk onderscheid in je antwoorden op basis van de aard van de gehuurde artikelen en de toepasselijke dekking.
-
-        Voer Uit: Verwerk deze instructies systematisch en met een focus op nauwkeurigheid en duidelijkheid in communicatie, gebruikmakend van je expertise als schadebehandelaar en je vermogen om complexe documenten te interpreteren.
         """
         
         prompt = ChatPromptTemplate.from_template(template)

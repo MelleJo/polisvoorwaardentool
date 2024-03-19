@@ -101,7 +101,7 @@ def process_document(document_path, user_question):
         Vermijd herhaling.
         Bij een "bril" ga je uit van een conventionele bril tenzij anders aangegeven door de gebruiker.
         Noem enkel de pagina's/secties en niet de naam van het document. 
-
+        Mocht het mogelijk zijn, gebruik dan ook bullet points.
         Gegeven de tekst uit de polisvoorwaarden: '{document_text}', en de vraag van de gebruiker: '{user_question}', hoe zou je deze vraag beantwoorden met inachtneming van de bovenstaande instructies? 
 
         """

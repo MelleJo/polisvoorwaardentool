@@ -143,7 +143,7 @@ def display_search_results(search_results):
     
 
 def main():
-    st.title("Polisvoorwaardentool - stabiele versie 1.2.1.")
+    st.title("Polisvoorwaardentool - stabiele versie 1.2.2.")
     all_documents = get_all_documents()
     selection_method = st.radio("Hoe wil je de polisvoorwaarden selecteren?:", 
                                 ['Zoeken', 'Categoriën', 'Per maatschappij'])

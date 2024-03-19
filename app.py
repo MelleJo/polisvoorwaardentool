@@ -91,7 +91,7 @@ def process_document(document_path, user_question):
         Houd er rekening mee dat als de dekking van een schade afhankelijk is van specifieke voorwaarden, je een duidelijke uitleg moet geven over deze voorwaarden. Je hoeft geen algemene disclaimers te geven die logisch zijn voor een schadebehandelaar, maar het is cruciaal om de voorwaarden voor dekking nauwkeurig weer te geven.
 
         Bovendien, controleer altijd of er een maximale vergoeding gespecificeerd is voor de gedekte voorwerpen en noem dit expliciet in je antwoord. Het is cruciaal dat deze informatie correct is en niet verward wordt met iets anders. Voorbeeld: Als een klant een iPhone laat vallen op het balkon, onderzoek dan niet alleen of de schade gedekt is, maar ook wat de maximale vergoeding is voor mobiele telefoons onder de polisvoorwaarden en vermeld dit duidelijk.
-
+        Ga bij een bril uit van een conventionele bril, een "normale bril", als het om een smartbril of een andere soort bril gaat dan zal de gebruiker dit aangeven.
         Bij het beantwoorden van vragen zoals 'Een klant heeft een iPhone laten vallen op het balkon, is dit gedekt?', zorg ervoor dat je eerst bevestigt of 'Mobiele elektronica' verzekerd is op het polisblad. Vervolgens, identificeer of schade door vallen of stoten gedekt is en specificeer de maximale vergoeding die van toepassing is op dergelijke claims. Citeer de relevante sectie(s) uit de polisvoorwaarden die je antwoord ondersteunen, inclusief de pagina- of sectienummers voor directe referentie. 
 
         Geef een conclusie aan het eind waar je in alle nauwkeurigheid een zo beknopt mogelijk antwoord geeft op de vraag.

@@ -84,15 +84,20 @@ def process_document(document_path, user_question):
         document_text = " ".join([doc.page_content for doc in docs])
 
         template = """
-        Gegeven polisvoorwaarden: '{document_text}' en een specifieke gebruikersvraag: '{user_question}', voer de volgende stappen uit voor een efficiënt en beknopt antwoord:
+        Taakomschrijving: Als ervaren schadebehandelaar met grondige kennis van polisvoorwaarden, is het je primaire doel om vragen over dekkingen, uitsluitingen, en voorwaarden accuraat te beantwoorden, met directe verwijzingen naar de betreffende polisvoorwaardendocumenten. Je antwoorden moeten direct uit deze documenten komen en specifiek citeren waar de informatie te vinden is, inclusief paginanummers of sectienummers indien beschikbaar.
 
-        1. **Zoek de Relevante Sectie**: Identificeer snel de sectie in de polisvoorwaarden die gerelateerd is aan de vraag. Focus op trefwoorden die direct verband houden met de vraag, zoals 'iPad', 'valschade', of 'Mobiele elektronica'.
+        Verwachtingen voor Antwoorden: Antwoord met precisie en bied directe citaten uit de polisvoorwaarden waar mogelijk. Vermeld altijd de locatie van de informatie (paginanummers of sectienummers). Als een vraag niet direct kan worden beantwoord met de beschikbare documentatie, geef dan duidelijk aan welke aanvullende informatie of verduidelijking van de gebruiker nodig is.
 
-        2. **Geef Specifieke Informatie**: Citeer de exacte passage die relevant is voor de vraag, inclusief de sectie- of paginanummer voor gemakkelijke referentie.
+        Instructies:
 
-        3. **Conclusie**: Formuleer een directe conclusie op basis van de geciteerde informatie. Als de dekking afhankelijk is van specifieke voorwaarden of als er onduidelijkheid bestaat, benoem dit dan kort.
+        Identificeer snel dekkingen en uitsluitingen relevant voor de gebruikersvraag. Focus op kerninformatie en vermijd overbodige details.
+        Citeer de relevante passage(s) uit de polisvoorwaarden die jouw bevindingen ondersteunen, met vermelding van de sectie- of paginanummers.
+        Eindig je antwoord met een beknopte conclusie die de vraag direct beantwoordt, waarbij je duidelijk maakt of de situatie gedekt is, inclusief eventuele specifieke voorwaarden of maximale vergoedingen.
+        Voorbeeld: Als de vraag is: 'Is schade door wateroverlast gedekt onder mijn polis?', zoek dan naar secties die wateroverlast behandelen. Je kunt bijvoorbeeld citeren: 'Wateroverlast wordt gedekt tot een maximum van €10.000 per gebeurtenis, zoals vermeld in Sectie 4.3 van uw polisvoorwaarden.' Sluit af met een duidelijke conclusie over de dekking.
 
-        Vermijd overbodige informatie en zorg voor een antwoord dat zowel volledig als beknopt is, gericht op het efficiënt beantwoorden van de gebruikersvraag.
+        Zorg voor een duidelijke, beknopte conclusie na je analyse. Dit helpt de gebruiker om snel het antwoord op hun vraag te begrijpen.
+
+        Gebruik de bovenstaande instructies om de vraag van de gebruiker te beantwoord: {user_question} op basis van {document_text}, je kennis komt enkel voort uit {document_text}. 
 
         """
         

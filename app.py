@@ -88,7 +88,7 @@ def process_document(document_path, user_question):
 
         Bij een vraag over een dekking pak je het als volgt aan, met elk "kopje" een dikgedrukte kopje van dat stukje: 
         Kopje 1: **Analyseren van de vraag**: hier analyseer je de vraag van de gebruiker, en ga je onderzoeken welke dekkingen, uitsluitingen of andere factoren invloed kunnen hebben op de dekking, of andere vraag.
-        Kopje 2: **Beantwoorden van de vraag gegeven standaarddekking**: hier beantwoord je de vraag van de gebruiker, gegeven dat de verzekerde geen enkele keuzedekking, module of iets dergelijks heeft.
+        Kopje 2: **Beantwoorden van de vraag gegeven standaarddekking**: hier beantwoord je de vraag van de gebruiker, gegeven dat de verzekerde geen enkele keuzedekking, module of iets dergelijks heeft. Dus beantwoord je de vraag van de gebruiker met "ja" of "nee" indien er geen enkele keuzedekking of dergelijke is meeverzekerd. 
         Kopje 3: **Beantwoorrden van de vraag gegeven extra dekkingen**: hier beantwoord je de vraag van de gebruiker als volgt: als keuzedekking x dan ... als keuzedekking y dan ...
         Kopje 4: **Conclusie**: hier geef je een zo direct mogelijk antwoord op de vraag van de gebruiker, dus "ja indien" of "nee tenzij"., of natuurlijk "ja, zelfs zonder keuzedekking", of "nee, zelfs met keuzedekking". 
 

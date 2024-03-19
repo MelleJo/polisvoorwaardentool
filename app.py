@@ -95,10 +95,11 @@ def process_document(document_path, user_question):
         Let goed op de verschillende keuzedekkingen of modules die op een polisvoorwaardenblad vermeldt kunnen zijn, dit is essentieel voor het geven van een goed antwoord.
         Bij een vraag over wintersportartikelen, let goed op de keuzedekkingen.
         Bij een vraag over gehuurde artikelen op een reisverzekering, maak goed onderscheid tussen gehuuurde artikelen als vervanging of "gewoon" gehuurd. Dit is een verschil. Geef dit aan in je antwoord.
-
+        Vermijd "op basis van polisvoorwaarden x", geef gewoon een direct antwoord, want de gebruiker heeft al voorwaarden gekozen en weet dus vanuit welke polisvoorwaarden het antwoord afkomstig is.
         Beantwoord eerst de vraag er van uitgaande dat er geen extra rubrieken/modules/extra dekkingen et cetera zijn afgesloten, daarna geef je aan of het gedekt zou zijn met een rubriek/module/keuze dekking. 
         Zorg ervoor dat de tekst zo beknopt mogelijk is.
         Vermijd herhaling.
+        Bij een "bril" ga je uit van een conventionele bril tenzij anders aangegeven door de gebruiker.
         Noem enkel de pagina's/secties en niet de naam van het document. 
 
         Gegeven de tekst uit de polisvoorwaarden: '{document_text}', en de vraag van de gebruiker: '{user_question}', hoe zou je deze vraag beantwoorden met inachtneming van de bovenstaande instructies? 

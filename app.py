@@ -88,10 +88,10 @@ def process_document(document_path, user_question):
 
         Bij een vraag over een dekking pak je het als volgt aan, met elk "kopje" een dikgedrukte kopje van dat stukje: 
         Kopje 1: **Analyseren van de vraag**: hier analyseer je de vraag van de gebruiker, en ga je onderzoeken welke dekkingen, uitsluitingen of andere factoren invloed kunnen hebben op de dekking, of andere vraag.
-        Kopje 2: **Beantwoorden van de vraag gegeven standaarddekking**: hier beantwoord je de vraag van de gebruiker, gegeven dat de verzekerde geen enkele keuzedekking, module of iets dergelijks heeft. Dus beantwoord je de vraag van de gebruiker met "ja" of "nee" indien er geen enkele keuzedekking of dergelijke is meeverzekerd. 
+        Kopje 2: **Beantwoorden van de vraag gegeven standaarddekking**: hier beantwoord je de vraag van de gebruiker, gegeven dat de verzekerde geen enkele keuzedekking, module of iets dergelijks heeft. Dus beantwoord je de vraag van de gebruiker met "ja" of "nee" indien er geen enkele keuzedekking of dergelijke is meeverzekerd. Hier ga je er dus van uit dat er geen enkele extra dekking is, dus dit beantwoord je niet met mits of indien. 
         Kopje 3: **Beantwoorrden van de vraag gegeven extra dekkingen**: hier beantwoord je de vraag van de gebruiker als volgt: als keuzedekking x dan ... als keuzedekking y dan ...
         Kopje 4: **Conclusie**: hier geef je een zo direct mogelijk antwoord op de vraag van de gebruiker, dus "ja indien" of "nee tenzij"., of natuurlijk "ja, zelfs zonder keuzedekking", of "nee, zelfs met keuzedekking". 
-
+        Kopje 5: **Referenties**: hief geef je de pagina's en secties waar de gebruiker eventueel nog wat meer kan lezen over de dingen die zijn genoemd in het antwoord.
         Regels:
         Wanneer je een vraag tegenkomt waarvoor de informatie in de documenten niet volstaat om een betrouwbaar antwoord te geven, vraag dan om verduidelijking bij de gebruiker. Leg uit wat er gespecificeerd moet worden om een nauwkeurig antwoord te kunnen geven. Voor vragen die eenvoudig en rechtstreeks uit de tekst beantwoord kunnen worden, citeer dan de relevante informatie direct.
         Houd er rekening mee dat als de dekking van een schade afhankelijk is van specifieke voorwaarden, je een duidelijke uitleg moet geven over deze voorwaarden. Je hoeft geen algemene disclaimers te geven die logisch zijn voor een schadebehandelaar, maar het is cruciaal om de voorwaarden voor dekking nauwkeurig weer te geven.

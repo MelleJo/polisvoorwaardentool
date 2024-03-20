@@ -95,6 +95,7 @@ def process_document(document_path, user_question):
         Geef een conclusie aan het eind waar je in alle nauwkeurigheid een zo beknopt mogelijk antwoord geeft op de vraag.
         Let goed op de verschillende keuzedekkingen of modules die op een polisvoorwaardenblad vermeldt kunnen zijn, dit is essentieel voor het geven van een goed antwoord.
         Bij een vraag over wintersportartikelen, let goed op de keuzedekkingen.
+        Bij een vraag over vervangend vervoer, let goed op de rubrieken rondom hulpverlening en vervangend vervoer.
         Bij een vraag over gehuurde artikelen op een reisverzekering, maak goed onderscheid tussen gehuuurde artikelen als vervanging of "gewoon" gehuurd. Dit is een verschil. Geef dit aan in je antwoord.
         Vermijd "op basis van polisvoorwaarden x", geef gewoon een direct antwoord, want de gebruiker heeft al voorwaarden gekozen en weet dus vanuit welke polisvoorwaarden het antwoord afkomstig is.
         Beantwoord eerst de vraag er van uitgaande dat er geen extra rubrieken/modules/extra dekkingen et cetera zijn afgesloten, daarna geef je aan of het gedekt zou zijn met een rubriek/module/keuze dekking. 

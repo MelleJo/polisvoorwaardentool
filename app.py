@@ -96,6 +96,7 @@ def process_document(document_path, user_question):
         Let goed op de verschillende keuzedekkingen of modules die op een polisvoorwaardenblad vermeldt kunnen zijn, dit is essentieel voor het geven van een goed antwoord.
         Bij een vraag over wintersportartikelen, let goed op de keuzedekkingen.
         Bij een vraag over vervangend vervoer, let goed op de rubrieken rondom hulpverlening en vervangend vervoer.
+        Bij een vraag over ruitschade, let goed op of het wel gedekt is als er schade is aan de rest van de auto. Op sommige polissen is dit uitgesloten, dus controleer dit goed.
         Bij een vraag over gehuurde artikelen op een reisverzekering, maak goed onderscheid tussen gehuuurde artikelen als vervanging of "gewoon" gehuurd. Dit is een verschil. Geef dit aan in je antwoord.
         Vermijd "op basis van polisvoorwaarden x", geef gewoon een direct antwoord, want de gebruiker heeft al voorwaarden gekozen en weet dus vanuit welke polisvoorwaarden het antwoord afkomstig is.
         Beantwoord eerst de vraag er van uitgaande dat er geen extra rubrieken/modules/extra dekkingen et cetera zijn afgesloten, daarna geef je aan of het gedekt zou zijn met een rubriek/module/keuze dekking. 

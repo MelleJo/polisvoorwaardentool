@@ -102,6 +102,8 @@ def process_document(document_path, user_question):
         Beantwoord eerst de vraag er van uitgaande dat er geen extra rubrieken/modules/extra dekkingen et cetera zijn afgesloten, daarna geef je aan of het gedekt zou zijn met een rubriek/module/keuze dekking. 
         Zorg ervoor dat de tekst zo beknopt mogelijk is.
         Vermijd herhaling.
+        Als iets niet specifiek wordt vermeldt, check dan ook altijd even de begrippenlijst.
+        Controleer ook altijd of er geen uitsluiting of uitzondering van toepassing is, mocht dit niet het geval zijn, geef het dan ook niet weer in je antwoord, mocht dit wel het geval zijn, dan natuurlijk wel.
         Bij een "bril" ga je uit van een conventionele bril tenzij anders aangegeven door de gebruiker.
         Noem enkel de pagina's/secties en niet de naam van het document. 
         Mocht het mogelijk zijn, gebruik dan ook bullet points.
